@@ -1,0 +1,654 @@
+import React, { useState, useEffect, useRef } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import {
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Maximize,
+  Minimize,
+  SkipForward,
+  SkipBack,
+  CheckCircle,
+  X,
+  Settings,
+  ChevronLeft,
+  ChevronRight,
+  Lock,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Slider } from "@/components/ui/slider";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { motion, AnimatePresence } from "framer-motion";
+
+export default function Player() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const videoRef = useRef(null);
+  const progressUpdateTimerRef = useRef(null);
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const lessonId = urlParams.get('lesson');
+  const courseId = urlParams.get('course');
+
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const [showControls, setShowControls] = useState(true);
+  const [showCompletePrompt, setShowCompletePrompt] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const { data: lesson } = useQuery({
+    queryKey: ['lesson', lessonId],
+    queryFn: async () => {
+      const lessons = await base44.entities.Lesson.filter({ id: lessonId });
+      return lessons[0];
+    },
+    enabled: !!lessonId,
+  });
+
+  const { data: lessons = [] } = useQuery({
+    queryKey: ['courseLessons', courseId],
+    queryFn: () => base44.entities.Lesson.filter({ course_id: courseId }, 'order'),
+    enabled: !!courseId,
+  });
+
+  const { data: modules = [] } = useQuery({
+    queryKey: ['courseModules', courseId],
+    queryFn: () => base44.entities.Module.filter({ course_id: courseId }, 'order'),
+    enabled: !!courseId,
+  });
+
+  const { data: progressData = [] } = useQuery({
+    queryKey: ['userProgress', user?.id, courseId],
+    queryFn: () => base44.entities.Progress.filter({ user_id: user?.id, course_id: courseId }),
+    enabled: !!user?.id && !!courseId,
+  });
+
+  const { data: enrollment } = useQuery({
+    queryKey: ['enrollment', user?.id, courseId],
+    queryFn: async () => {
+      const enrollments = await base44.entities.Enrollment.filter({
+        user_id: user?.id,
+        course_id: courseId,
+      });
+      return enrollments[0];
+    },
+    enabled: !!user?.id && !!courseId,
+  });
+
+  const updateProgressMutation = useMutation({
+    mutationFn: async (data) => {
+      const existingProgress = progressData.find(p => p.lesson_id === lessonId);
+      if (existingProgress) {
+        return base44.entities.Progress.update(existingProgress.id, data);
+      } else {
+        return base44.entities.Progress.create({
+          user_id: user?.id,
+          lesson_id: lessonId,
+          course_id: courseId,
+          module_id: lesson?.module_id,
+          ...data,
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userProgress'] });
+    },
+  });
+
+  const updateEnrollmentMutation = useMutation({
+    mutationFn: (data) => base44.entities.Enrollment.update(enrollment.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['enrollment'] });
+    },
+  });
+
+  const markAsCompleteMutation = useMutation({
+    mutationFn: async () => {
+      const existingProgress = progressData.find(p => p.lesson_id === lessonId);
+      const updateData = {
+        completed: true,
+        completed_at: new Date().toISOString(),
+        percentage: 100,
+        last_position: duration,
+        seconds_watched: duration,
+      };
+
+      if (existingProgress) {
+        await base44.entities.Progress.update(existingProgress.id, updateData);
+      } else {
+        await base44.entities.Progress.create({
+          user_id: user?.id,
+          lesson_id: lessonId,
+          course_id: courseId,
+          module_id: lesson?.module_id,
+          ...updateData,
+        });
+      }
+
+      if (enrollment) {
+        await base44.entities.Enrollment.update(enrollment.id, {
+          last_watched_lesson_id: lessonId,
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userProgress'] });
+      setShowCompletePrompt(false);
+      handleNextLesson();
+    },
+  });
+
+  useEffect(() => {
+    if (enrollment && lessonId) {
+      updateEnrollmentMutation.mutate({ last_watched_lesson_id: lessonId });
+    }
+  }, [lessonId]);
+
+  useEffect(() => {
+    const existingProgress = progressData.find(p => p.lesson_id === lessonId);
+    if (existingProgress && videoRef.current && existingProgress.last_position) {
+      videoRef.current.currentTime = existingProgress.last_position;
+    }
+  }, [lessonId, progressData]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleTimeUpdate = () => {
+      setCurrentTime(video.currentTime);
+      
+      const percentage = (video.currentTime / video.duration) * 100;
+      
+      if (percentage >= 90 && !showCompletePrompt) {
+        const existingProgress = progressData.find(p => p.lesson_id === lessonId);
+        if (!existingProgress?.completed) {
+          setShowCompletePrompt(true);
+        }
+      }
+    };
+
+    const handleLoadedMetadata = () => {
+      setDuration(video.duration);
+    };
+
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+
+    return () => {
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    };
+  }, [lessonId, showCompletePrompt, progressData]);
+
+  useEffect(() => {
+    if (progressUpdateTimerRef.current) {
+      clearInterval(progressUpdateTimerRef.current);
+    }
+
+    progressUpdateTimerRef.current = setInterval(() => {
+      if (isPlaying && videoRef.current && lesson) {
+        const currentPos = videoRef.current.currentTime;
+        const videoDuration = videoRef.current.duration;
+        const percentage = (currentPos / videoDuration) * 100;
+
+        updateProgressMutation.mutate({
+          last_position: currentPos,
+          seconds_watched: currentPos,
+          percentage: Math.min(percentage, 100),
+        });
+      }
+    }, 10000);
+
+    return () => {
+      if (progressUpdateTimerRef.current) {
+        clearInterval(progressUpdateTimerRef.current);
+      }
+    };
+  }, [isPlaying, lesson, lessonId]);
+
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const handleSeek = (value) => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = value[0];
+      setCurrentTime(value[0]);
+    }
+  };
+
+  const handleVolumeChange = (value) => {
+    if (videoRef.current) {
+      const newVolume = value[0];
+      videoRef.current.volume = newVolume;
+      setVolume(newVolume);
+      setIsMuted(newVolume === 0);
+    }
+  };
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  const changePlaybackRate = (rate) => {
+    if (videoRef.current) {
+      videoRef.current.playbackRate = rate;
+      setPlaybackRate(rate);
+    }
+  };
+
+  const skip = (seconds) => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = Math.max(0, Math.min(duration, currentTime + seconds));
+    }
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getCurrentLessonIndex = () => {
+    return lessons.findIndex(l => l.id === lessonId);
+  };
+
+  const isLessonUnlocked = (checkLesson) => {
+    const lessonIndex = lessons.findIndex(l => l.id === checkLesson.id);
+    if (lessonIndex === 0) return true;
+    if (!checkLesson.requires_previous) return true;
+    
+    const previousLesson = lessons[lessonIndex - 1];
+    const previousProgress = progressData.find(p => p.lesson_id === previousLesson.id);
+    return previousProgress?.completed || false;
+  };
+
+  const handleNextLesson = () => {
+    const currentIndex = getCurrentLessonIndex();
+    if (currentIndex < lessons.length - 1) {
+      const nextLesson = lessons[currentIndex + 1];
+      if (isLessonUnlocked(nextLesson)) {
+        navigate(createPageUrl('Player') + `?lesson=${nextLesson.id}&course=${courseId}`);
+      }
+    }
+  };
+
+  const handlePreviousLesson = () => {
+    const currentIndex = getCurrentLessonIndex();
+    if (currentIndex > 0) {
+      const prevLesson = lessons[currentIndex - 1];
+      navigate(createPageUrl('Player') + `?lesson=${prevLesson.id}&course=${courseId}`);
+    }
+  };
+
+  const goToLesson = (targetLesson) => {
+    if (isLessonUnlocked(targetLesson)) {
+      navigate(createPageUrl('Player') + `?lesson=${targetLesson.id}&course=${courseId}`);
+    }
+  };
+
+  const getLessonProgress = (checkLessonId) => {
+    return progressData.find(p => p.lesson_id === checkLessonId);
+  };
+
+  const getLessonsForModule = (moduleId) => {
+    return lessons.filter(l => l.module_id === moduleId);
+  };
+
+  if (!lesson) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-slate-950">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-600"></div>
+      </div>
+    );
+  }
+
+  const currentIndex = getCurrentLessonIndex();
+  const hasNext = currentIndex < lessons.length - 1;
+  const hasPrev = currentIndex > 0;
+
+  return (
+    <div className="min-h-screen bg-slate-950 flex flex-col">
+      {/* Top Bar */}
+      <div className="bg-slate-900/80 backdrop-blur-xl border-b border-slate-800/50 px-4 py-3 flex items-center justify-between">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(createPageUrl('CourseDetail') + '?id=' + courseId)}
+          className="text-slate-300 hover:text-white"
+        >
+          <X className="w-5 h-5" />
+        </Button>
+        <h1 className="text-white font-semibold truncate flex-1 mx-4">{lesson.title}</h1>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="text-slate-300 hover:text-white"
+        >
+          {sidebarOpen ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+        </Button>
+      </div>
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* Video Player */}
+        <div className="flex-1 flex flex-col bg-black relative">
+          <div
+            className="flex-1 relative group"
+            onMouseMove={() => setShowControls(true)}
+            onMouseLeave={() => setShowControls(false)}
+          >
+            <video
+              ref={videoRef}
+              src={lesson.video_url}
+              className="w-full h-full"
+              onClick={togglePlay}
+            />
+
+            {/* Controls Overlay */}
+            <AnimatePresence>
+              {showControls && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 flex flex-col justify-between p-6"
+                >
+                  {/* Top Controls */}
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h2 className="text-white text-xl font-semibold">{lesson.title}</h2>
+                      <p className="text-slate-300 text-sm mt-1">{lesson.description}</p>
+                    </div>
+                  </div>
+
+                  {/* Center Play Button */}
+                  <div className="flex items-center justify-center">
+                    <Button
+                      onClick={togglePlay}
+                      size="lg"
+                      className="w-20 h-20 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm"
+                    >
+                      {isPlaying ? (
+                        <Pause className="w-10 h-10 text-white" />
+                      ) : (
+                        <Play className="w-10 h-10 text-white ml-1" />
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Bottom Controls */}
+                  <div className="space-y-3">
+                    {/* Progress Bar */}
+                    <Slider
+                      value={[currentTime]}
+                      max={duration || 100}
+                      step={0.1}
+                      onValueChange={handleSeek}
+                      className="cursor-pointer"
+                    />
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={togglePlay}
+                          className="text-white hover:bg-white/10"
+                        >
+                          {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => skip(-10)}
+                          className="text-white hover:bg-white/10"
+                        >
+                          <SkipBack className="w-5 h-5" />
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => skip(10)}
+                          className="text-white hover:bg-white/10"
+                        >
+                          <SkipForward className="w-5 h-5" />
+                        </Button>
+
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={toggleMute}
+                            className="text-white hover:bg-white/10"
+                          >
+                            {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                          </Button>
+                          <Slider
+                            value={[isMuted ? 0 : volume]}
+                            max={1}
+                            step={0.01}
+                            onValueChange={handleVolumeChange}
+                            className="w-24"
+                          />
+                        </div>
+
+                        <span className="text-white text-sm">
+                          {formatTime(currentTime)} / {formatTime(duration)}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="sm" variant="ghost" className="text-white hover:bg-white/10">
+                              <Settings className="w-5 h-5 mr-2" />
+                              {playbackRate}x
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="bg-slate-900 border-slate-800">
+                            {[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((rate) => (
+                              <DropdownMenuItem
+                                key={rate}
+                                onClick={() => changePlaybackRate(rate)}
+                                className="text-slate-300 focus:bg-slate-800 focus:text-white cursor-pointer"
+                              >
+                                {rate}x
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={toggleFullscreen}
+                          className="text-white hover:bg-white/10"
+                        >
+                          {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Navigation Buttons */}
+          <div className="bg-slate-900/95 backdrop-blur-xl border-t border-slate-800/50 p-4 flex items-center justify-between">
+            <Button
+              onClick={handlePreviousLesson}
+              disabled={!hasPrev}
+              variant="outline"
+              className="border-slate-700 text-slate-300 hover:bg-slate-800"
+            >
+              <ChevronLeft className="w-4 h-4 mr-2" />
+              Anterior
+            </Button>
+
+            <Button
+              onClick={() => markAsCompleteMutation.mutate()}
+              disabled={markAsCompleteMutation.isPending}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+            >
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Marcar como Concluída
+            </Button>
+
+            <Button
+              onClick={handleNextLesson}
+              disabled={!hasNext}
+              className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
+            >
+              Próxima
+              <ChevronRight className="w-4 h-4 ml-2" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Sidebar */}
+        <AnimatePresence>
+          {sidebarOpen && (
+            <motion.div
+              initial={{ x: 300 }}
+              animate={{ x: 0 }}
+              exit={{ x: 300 }}
+              className="w-80 bg-slate-900/95 backdrop-blur-xl border-l border-slate-800/50 overflow-y-auto"
+            >
+              <div className="p-4 space-y-3">
+                <h3 className="text-white font-semibold text-lg mb-4">Conteúdo</h3>
+                {modules.map((module) => {
+                  const moduleLessons = getLessonsForModule(module.id);
+                  return (
+                    <div key={module.id} className="space-y-2">
+                      <h4 className="text-slate-400 text-sm font-medium px-2">{module.title}</h4>
+                      {moduleLessons.map((moduleLesson) => {
+                        const progress = getLessonProgress(moduleLesson.id);
+                        const isUnlocked = isLessonUnlocked(moduleLesson);
+                        const isCurrent = moduleLesson.id === lessonId;
+
+                        return (
+                          <button
+                            key={moduleLesson.id}
+                            onClick={() => goToLesson(moduleLesson)}
+                            disabled={!isUnlocked}
+                            className={`w-full p-3 rounded-lg text-left transition-all ${
+                              isCurrent
+                                ? 'bg-violet-600 text-white'
+                                : isUnlocked
+                                ? 'bg-slate-800/50 text-slate-300 hover:bg-slate-800'
+                                : 'bg-slate-800/30 text-slate-500 cursor-not-allowed'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              {progress?.completed ? (
+                                <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
+                              ) : isUnlocked ? (
+                                <Play className="w-4 h-4 flex-shrink-0" />
+                              ) : (
+                                <Lock className="w-4 h-4 flex-shrink-0" />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{moduleLesson.title}</p>
+                                <p className="text-xs opacity-75">{Math.floor(moduleLesson.duration_seconds / 60)} min</p>
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Complete Prompt */}
+      <AnimatePresence>
+        {showCompletePrompt && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-20 right-8 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-6 max-w-sm z-50"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-green-600/20 flex items-center justify-center flex-shrink-0">
+                <CheckCircle className="w-6 h-6 text-green-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-white font-semibold mb-1">Quase lá!</h3>
+                <p className="text-slate-400 text-sm mb-4">
+                  Você assistiu 90% desta aula. Deseja marcá-la como concluída?
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => markAsCompleteMutation.mutate()}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    Concluir
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowCompletePrompt(false)}
+                    className="border-slate-700 text-slate-300"
+                  >
+                    Depois
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
