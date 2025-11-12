@@ -218,11 +218,11 @@ export default function ManageCourse() {
         </div>
         <Button
           onClick={handleSaveCourse}
-          disabled={updateCourseMutation.isPending}
+          disabled={updateCourseMutation.isLoading}
           className="bg-gradient-to-r from-violet-600 to-purple-600"
         >
           <Save className="w-4 h-4 mr-2" />
-          {updateCourseMutation.isPending ? 'Salvando...' : 'Salvar'}
+          {updateCourseMutation.isLoading ? 'Salvando...' : 'Salvar'}
         </Button>
       </div>
 
@@ -471,7 +471,7 @@ export default function ManageCourse() {
             </Button>
             <Button
               onClick={() => createModuleMutation.mutate(newModule)}
-              disabled={!newModule.title.trim() || createModuleMutation.isPending}
+              disabled={!newModule.title.trim() || createModuleMutation.isLoading}
               className="bg-violet-600 hover:bg-violet-700"
             >
               Criar Módulo
@@ -543,7 +543,7 @@ export default function ManageCourse() {
             </Button>
             <Button
               onClick={() => createLessonMutation.mutate(newLesson)}
-              disabled={!newLesson.title.trim() || !newLesson.video_url || createLessonMutation.isPending}
+              disabled={!newLesson.title.trim() || !newLesson.video_url || createLessonMutation.isLoading}
               className="bg-violet-600 hover:bg-violet-700"
             >
               Criar Aula

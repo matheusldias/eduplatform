@@ -153,6 +153,7 @@ export default function Player() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userProgress'] });
+      queryClient.invalidateQueries({ queryKey: ['enrollment'] });
       setShowCompletePrompt(false);
       handleNextLesson();
     },
@@ -532,7 +533,7 @@ export default function Player() {
 
             <Button
               onClick={() => markAsCompleteMutation.mutate()}
-              disabled={markAsCompleteMutation.isPending}
+              disabled={markAsCompleteMutation.isLoading}
               className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
             >
               <CheckCircle className="w-4 h-4 mr-2" />

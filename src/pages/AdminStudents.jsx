@@ -77,23 +77,10 @@ export default function AdminStudents() {
 
   const createStudentMutation = useMutation({
     mutationFn: async (studentData) => {
-      // Criar usuário usando a API de autenticação
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...studentData,
-          role: 'user',
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Erro ao criar aluno');
-      }
-      
-      return response.json();
+      // Criar usuário - Note: Na plataforma Base44, usuários devem ser convidados pelo dashboard
+      // Por enquanto, vamos apenas mostrar um alerta informando isso
+      alert('IMPORTANTE: Para criar novos alunos na plataforma Base44, você precisa usar o dashboard.\n\nVá em Dashboard → Users → Invite User e convide o aluno por email.\n\nApós o aluno aceitar o convite e criar a conta, ele aparecerá aqui e você poderá matriculá-lo nos cursos.');
+      throw new Error('Use o Dashboard para convidar usuários');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['students'] });
@@ -403,10 +390,10 @@ export default function AdminStudents() {
             </Button>
             <Button
               onClick={handleCreateStudent}
-              disabled={createStudentMutation.isPending}
+              disabled={createStudentMutation.isLoading}
               className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
             >
-              {createStudentMutation.isPending ? 'Cadastrando...' : 'Cadastrar Aluno'}
+              {createStudentMutation.isLoading ? 'Cadastrando...' : 'Cadastrar Aluno'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -473,10 +460,10 @@ export default function AdminStudents() {
             </Button>
             <Button
               onClick={handleEnrollStudent}
-              disabled={createEnrollmentsMutation.isPending}
+              disabled={createEnrollmentsMutation.isLoading}
               className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
             >
-              {createEnrollmentsMutation.isPending ? 'Salvando...' : 'Salvar Matrículas'}
+              {createEnrollmentsMutation.isLoading ? 'Salvando...' : 'Salvar Matrículas'}
             </Button>
           </DialogFooter>
         </DialogContent>
