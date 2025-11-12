@@ -4,6 +4,8 @@ import ManageCourse from './pages/ManageCourse';
 import CourseDetail from './pages/CourseDetail';
 import Player from './pages/Player';
 import Certificates from './pages/Certificates';
+import AdminStudents from './pages/AdminStudents';
+import StudentProgress from './pages/StudentProgress';
 import Layout from './Layout.jsx';
 
 
@@ -14,6 +16,8 @@ export const PAGES = {
     "CourseDetail": CourseDetail,
     "Player": Player,
     "Certificates": Certificates,
+    "AdminStudents": AdminStudents,
+    "StudentProgress": StudentProgress,
 }
 
 export const pagesConfig = {
