@@ -34,6 +34,7 @@ export default function Player() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const videoRef = useRef(null);
+  const iframeRef = useRef(null);
   const progressUpdateTimerRef = useRef(null);
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -50,6 +51,17 @@ export default function Player() {
   const [showControls, setShowControls] = useState(true);
   const [showCompletePrompt, setShowCompletePrompt] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Detectar se é vídeo do YouTube
+  const getYouTubeId = (url) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  const youtubeId = getYouTubeId(lesson?.video_url);
+  const isYouTube = !!youtubeId;
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -167,12 +179,20 @@ export default function Player() {
 
   useEffect(() => {
     const existingProgress = progressData.find(p => p.lesson_id === lessonId);
-    if (existingProgress && videoRef.current && existingProgress.last_position) {
+    if (existingProgress && videoRef.current && existingProgress.last_position && !isYouTube) {
       videoRef.current.currentTime = existingProgress.last_position;
     }
-  }, [lessonId, progressData]);
+  }, [lessonId, progressData, isYouTube]);
 
   useEffect(() => {
+    if (isYouTube) {
+      // Para YouTube, estimamos a duração baseada no campo duration_seconds
+      if (lesson?.duration_seconds) {
+        setDuration(lesson.duration_seconds);
+      }
+      return;
+    }
+
     const video = videoRef.current;
     if (!video) return;
 
@@ -200,33 +220,35 @@ export default function Player() {
       video.removeEventListener('timeupdate', handleTimeUpdate);
       video.removeEventListener('loadedmetadata', handleLoadedMetadata);
     };
-  }, [lessonId, showCompletePrompt, progressData]);
+  }, [lessonId, showCompletePrompt, progressData, isYouTube, lesson]);
 
   useEffect(() => {
     if (progressUpdateTimerRef.current) {
       clearInterval(progressUpdateTimerRef.current);
     }
 
-    progressUpdateTimerRef.current = setInterval(() => {
-      if (isPlaying && videoRef.current && lesson) {
-        const currentPos = videoRef.current.currentTime;
-        const videoDuration = videoRef.current.duration;
-        const percentage = (currentPos / videoDuration) * 100;
+    if (!isYouTube) {
+      progressUpdateTimerRef.current = setInterval(() => {
+        if (isPlaying && videoRef.current && lesson) {
+          const currentPos = videoRef.current.currentTime;
+          const videoDuration = videoRef.current.duration;
+          const percentage = (currentPos / videoDuration) * 100;
 
-        updateProgressMutation.mutate({
-          last_position: currentPos,
-          seconds_watched: currentPos,
-          percentage: Math.min(percentage, 100),
-        });
-      }
-    }, 10000);
+          updateProgressMutation.mutate({
+            last_position: currentPos,
+            seconds_watched: currentPos,
+            percentage: Math.min(percentage, 100),
+          });
+        }
+      }, 10000);
+    }
 
     return () => {
       if (progressUpdateTimerRef.current) {
         clearInterval(progressUpdateTimerRef.current);
       }
     };
-  }, [isPlaying, lesson, lessonId]);
+  }, [isPlaying, lesson, lessonId, isYouTube]);
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -380,16 +402,26 @@ export default function Player() {
             onMouseMove={() => setShowControls(true)}
             onMouseLeave={() => setShowControls(false)}
           >
-            <video
-              ref={videoRef}
-              src={lesson.video_url}
-              className="w-full h-full"
-              onClick={togglePlay}
-            />
+            {isYouTube ? (
+              <iframe
+                ref={iframeRef}
+                src={`https://www.youtube.com/embed/${youtubeId}?autoplay=0&rel=0`}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <video
+                ref={videoRef}
+                src={lesson.video_url}
+                className="w-full h-full"
+                onClick={togglePlay}
+              />
+            )}
 
-            {/* Controls Overlay */}
+            {/* Controls Overlay - Ocultar para YouTube */}
             <AnimatePresence>
-              {showControls && (
+              {showControls && !isYouTube && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
