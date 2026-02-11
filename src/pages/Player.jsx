@@ -52,17 +52,6 @@ export default function Player() {
   const [showCompletePrompt, setShowCompletePrompt] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // Detectar se é vídeo do YouTube
-  const getYouTubeId = (url) => {
-    if (!url) return null;
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-    const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : null;
-  };
-
-  const youtubeId = getYouTubeId(lesson?.video_url);
-  const isYouTube = !!youtubeId;
-
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
@@ -106,6 +95,17 @@ export default function Player() {
     },
     enabled: !!user?.id && !!courseId,
   });
+
+  // Detectar se é vídeo do YouTube
+  const getYouTubeId = (url) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  const youtubeId = getYouTubeId(lesson?.video_url);
+  const isYouTube = !!youtubeId;
 
   const updateProgressMutation = useMutation({
     mutationFn: async (data) => {
