@@ -25,13 +25,13 @@ export default function MyCourses() {
     enabled: !!user?.id,
   });
 
-  const { data: courses = [] } = useQuery({
-    queryKey: ['courses'],
-    queryFn: () => base44.entities.Course.filter({ status: 'published' }),
+  const { data: allCourses = [] } = useQuery({
+    queryKey: ['allCourses'],
+    queryFn: () => base44.entities.Course.list(),
   });
 
   const enrolledCourseIds = enrollments.map(e => e.course_id);
-  const myCourses = courses.filter(c => enrolledCourseIds.includes(c.id));
+  const myCourses = allCourses.filter(c => enrolledCourseIds.includes(c.id));
 
   const filteredCourses = myCourses.filter(course =>
     course.title.toLowerCase().includes(searchQuery.toLowerCase())
