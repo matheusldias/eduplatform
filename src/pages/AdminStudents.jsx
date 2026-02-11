@@ -67,7 +67,7 @@ export default function AdminStudents() {
 
   const { data: courses = [] } = useQuery({
     queryKey: ['courses'],
-    queryFn: () => base44.entities.Course.filter({ status: 'published' }),
+    queryFn: () => base44.entities.Course.list('-created_date'),
   });
 
   const { data: enrollments = [] } = useQuery({
