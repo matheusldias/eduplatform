@@ -92,7 +92,13 @@ export default function AdminStudents() {
   const createEnrollmentsMutation = useMutation({
     mutationFn: async ({ studentId, courseIds }) => {
       const student = students.find(s => s.id === studentId);
-      const enrollmentPromises = courseIds.map(courseId => {
+      const existingEnrollments = enrollments.filter(e => e.user_id === studentId);
+      const existingCourseIds = existingEnrollments.map(e => e.course_id);
+      
+      // Criar apenas matrículas para cursos que ainda não estão matriculados
+      const coursesToEnroll = courseIds.filter(id => !existingCourseIds.includes(id));
+      
+      const enrollmentPromises = coursesToEnroll.map(courseId => {
         const course = courses.find(c => c.id === courseId);
         return base44.entities.Enrollment.create({
           user_id: studentId,
@@ -104,7 +110,15 @@ export default function AdminStudents() {
           total_lessons: course?.total_lessons || 0,
         });
       });
-      return Promise.all(enrollmentPromises);
+      
+      // Remover matrículas que foram desmarcadas
+      const coursesToUnenroll = existingCourseIds.filter(id => !courseIds.includes(id));
+      const unenrollPromises = coursesToUnenroll.map(courseId => {
+        const enrollment = existingEnrollments.find(e => e.course_id === courseId);
+        return enrollment ? base44.entities.Enrollment.delete(enrollment.id) : Promise.resolve();
+      });
+      
+      return Promise.all([...enrollmentPromises, ...unenrollPromises]);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allEnrollments'] });

@@ -46,7 +46,6 @@ export default function Layout({ children, currentPageName }) {
   }
 
   const adminNav = [
-    { name: 'Dashboard', icon: LayoutDashboard, url: createPageUrl('AdminDashboard') },
     { name: 'Cursos', icon: BookOpen, url: createPageUrl('AdminDashboard') },
     { name: 'Alunos', icon: Users, url: createPageUrl('AdminStudents') },
   ];
