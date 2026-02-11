@@ -521,6 +521,17 @@ export default function ManageCourse() {
               )}
             </div>
             <div className="space-y-2">
+              <Label>ou URL do YouTube</Label>
+              <Input
+                type="text"
+                placeholder="https://www.youtube.com/watch?v=..."
+                value={newLesson.video_url}
+                onChange={(e) => setNewLesson({ ...newLesson, video_url: e.target.value })}
+                className="bg-slate-800 border-slate-700 text-white"
+              />
+              <p className="text-xs text-slate-500">Cole o link de um vídeo do YouTube</p>
+            </div>
+            <div className="space-y-2">
               <Label>Duração (segundos)</Label>
               <Input
                 type="number"
