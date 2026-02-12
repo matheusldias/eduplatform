@@ -18,6 +18,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Lock,
+  FileText,
+  Image as ImageIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -96,7 +98,10 @@ export default function Player() {
     enabled: !!user?.id && !!courseId,
   });
 
-  // Detectar se é vídeo do YouTube
+  // Detectar tipo de conteúdo
+  const contentType = lesson?.content_type || 'video';
+  const contentUrl = lesson?.content_url || lesson?.video_url;
+  
   const getYouTubeId = (url) => {
     if (!url) return null;
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -104,8 +109,8 @@ export default function Player() {
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
-  const youtubeId = getYouTubeId(lesson?.video_url);
-  const isYouTube = !!youtubeId;
+  const youtubeId = getYouTubeId(contentUrl);
+  const isYouTube = !!youtubeId && contentType === 'video';
 
   const updateProgressMutation = useMutation({
     mutationFn: async (data) => {
@@ -402,7 +407,21 @@ export default function Player() {
             onMouseMove={() => setShowControls(true)}
             onMouseLeave={() => setShowControls(false)}
           >
-            {isYouTube ? (
+            {contentType === 'pdf' ? (
+              <iframe
+                src={contentUrl}
+                className="w-full h-full"
+                title={lesson.title}
+              />
+            ) : contentType === 'image' ? (
+              <div className="w-full h-full flex items-center justify-center bg-slate-950 p-8">
+                <img
+                  src={contentUrl}
+                  alt={lesson.title}
+                  className="max-w-full max-h-full object-contain"
+                />
+              </div>
+            ) : isYouTube ? (
               <iframe
                 ref={iframeRef}
                 src={`https://www.youtube.com/embed/${youtubeId}?autoplay=0&rel=0`}
@@ -413,15 +432,15 @@ export default function Player() {
             ) : (
               <video
                 ref={videoRef}
-                src={lesson.video_url}
+                src={contentUrl}
                 className="w-full h-full"
                 onClick={togglePlay}
               />
             )}
 
-            {/* Controls Overlay - Ocultar para YouTube */}
+            {/* Controls Overlay - Apenas para vídeos */}
             <AnimatePresence>
-              {showControls && !isYouTube && (
+              {showControls && !isYouTube && contentType === 'video' && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -563,6 +582,12 @@ export default function Player() {
               Anterior
             </Button>
 
+            {contentType !== 'video' && (
+              <div className="text-slate-400 text-sm">
+                {contentType === 'pdf' ? 'Documento PDF' : 'Imagem'}
+              </div>
+            )}
+
             <Button
               onClick={() => markAsCompleteMutation.mutate()}
               disabled={markAsCompleteMutation.isLoading}
@@ -604,6 +629,7 @@ export default function Player() {
                         const isUnlocked = isLessonUnlocked(moduleLesson);
                         const isCurrent = moduleLesson.id === lessonId;
 
+                        const LessonIcon = moduleLesson.content_type === 'pdf' ? FileText : moduleLesson.content_type === 'image' ? ImageIcon : Play;
                         return (
                           <button
                             key={moduleLesson.id}
@@ -621,13 +647,17 @@ export default function Player() {
                               {progress?.completed ? (
                                 <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
                               ) : isUnlocked ? (
-                                <Play className="w-4 h-4 flex-shrink-0" />
+                                <LessonIcon className="w-4 h-4 flex-shrink-0" />
                               ) : (
                                 <Lock className="w-4 h-4 flex-shrink-0" />
                               )}
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium truncate">{moduleLesson.title}</p>
-                                <p className="text-xs opacity-75">{Math.floor(moduleLesson.duration_seconds / 60)} min</p>
+                                <p className="text-xs opacity-75">
+                                  {moduleLesson.content_type === 'video' 
+                                    ? `${Math.floor(moduleLesson.duration_seconds / 60)} min` 
+                                    : moduleLesson.content_type === 'pdf' ? 'PDF' : 'Imagem'}
+                                </p>
                               </div>
                             </div>
                           </button>
