@@ -62,6 +62,13 @@ export default function AdminDashboard() {
     queryFn: () => base44.auth.me(),
   });
 
+  // Redirecionar não-admins
+  React.useEffect(() => {
+    if (user && user.role !== 'admin') {
+      navigate(createPageUrl('MyCourses'));
+    }
+  }, [user, navigate]);
+
   const { data: courses = [], isLoading } = useQuery({
     queryKey: ['courses'],
     queryFn: () => base44.entities.Course.list('-created_date'),

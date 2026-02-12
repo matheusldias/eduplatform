@@ -63,6 +63,18 @@ export default function ManageCourse() {
     requires_previous: true,
   });
 
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  // Redirecionar não-admins
+  React.useEffect(() => {
+    if (user && user.role !== 'admin') {
+      navigate(createPageUrl('MyCourses'));
+    }
+  }, [user, navigate]);
+
   const { data: course, isLoading } = useQuery({
     queryKey: ['course', courseId],
     queryFn: async () => {
