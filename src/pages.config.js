@@ -49,6 +49,7 @@
  */
 import AdminDashboard from './pages/AdminDashboard';
 import AdminStudents from './pages/AdminStudents';
+import BrowseCourses from './pages/BrowseCourses';
 import Certificates from './pages/Certificates';
 import CourseDetail from './pages/CourseDetail';
 import Home from './pages/Home';
@@ -56,13 +57,13 @@ import ManageCourse from './pages/ManageCourse';
 import MyCourses from './pages/MyCourses';
 import Player from './pages/Player';
 import StudentProgress from './pages/StudentProgress';
-import BrowseCourses from './pages/BrowseCourses';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AdminDashboard": AdminDashboard,
     "AdminStudents": AdminStudents,
+    "BrowseCourses": BrowseCourses,
     "Certificates": Certificates,
     "CourseDetail": CourseDetail,
     "Home": Home,
@@ -70,7 +71,6 @@ export const PAGES = {
     "MyCourses": MyCourses,
     "Player": Player,
     "StudentProgress": StudentProgress,
-    "BrowseCourses": BrowseCourses,
 }
 
 export const pagesConfig = {

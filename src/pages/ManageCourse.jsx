@@ -15,6 +15,8 @@ import {
   FileVideo,
   FileText,
   Image,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +52,7 @@ export default function ManageCourse() {
   const [showLessonDialog, setShowLessonDialog] = useState(false);
   const [selectedModule, setSelectedModule] = useState(null);
   const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [editingLesson, setEditingLesson] = useState(null);
 
   const [newModule, setNewModule] = useState({ title: "", description: "", order: 1 });
   const [newLesson, setNewLesson] = useState({
@@ -168,6 +171,49 @@ export default function ManageCourse() {
         requires_previous: true,
       });
       setSelectedModule(null);
+      setEditingLesson(null);
+    },
+  });
+
+  const updateLessonMutation = useMutation({
+    mutationFn: async ({ lessonId, data }) => {
+      const updated = await base44.entities.Lesson.update(lessonId, data);
+      
+      // Atualizar contadores do curso
+      const allLessons = await base44.entities.Lesson.filter({ course_id: courseId });
+      const totalDuration = allLessons.reduce((sum, l) => sum + (l.duration_seconds || 0), 0);
+      await base44.entities.Course.update(courseId, {
+        total_lessons: allLessons.length,
+        total_duration_minutes: Math.floor(totalDuration / 60),
+      });
+      
+      return updated;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['lessons', courseId] });
+      queryClient.invalidateQueries({ queryKey: ['course', courseId] });
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      setShowLessonDialog(false);
+      setNewLesson({
+        title: "",
+        description: "",
+        order: 1,
+        content_type: "video",
+        content_url: "",
+        video_url: "",
+        duration_seconds: 0,
+        requires_previous: true,
+      });
+      setEditingLesson(null);
+    },
+  });
+
+  const reorderLessonMutation = useMutation({
+    mutationFn: async ({ lessonId, newOrder }) => {
+      return await base44.entities.Lesson.update(lessonId, { order: newOrder });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['lessons', courseId] });
     },
   });
 
@@ -232,6 +278,51 @@ export default function ManageCourse() {
 
   const getLessonsForModule = (moduleId) => {
     return lessons.filter(l => l.module_id === moduleId).sort((a, b) => a.order - b.order);
+  };
+
+  const handleEditLesson = (lesson) => {
+    setEditingLesson(lesson);
+    setNewLesson({
+      title: lesson.title,
+      description: lesson.description,
+      order: lesson.order,
+      content_type: lesson.content_type,
+      content_url: lesson.content_url,
+      video_url: lesson.video_url || lesson.content_url,
+      duration_seconds: lesson.duration_seconds || 0,
+      requires_previous: lesson.requires_previous !== false,
+    });
+    setSelectedModule(modules.find(m => m.id === lesson.module_id));
+    setShowLessonDialog(true);
+  };
+
+  const handleSaveLesson = () => {
+    if (editingLesson) {
+      updateLessonMutation.mutate({
+        lessonId: editingLesson.id,
+        data: newLesson,
+      });
+    } else {
+      createLessonMutation.mutate(newLesson);
+    }
+  };
+
+  const moveLessonUp = (lesson, moduleLessons) => {
+    const currentIndex = moduleLessons.findIndex(l => l.id === lesson.id);
+    if (currentIndex > 0) {
+      const prevLesson = moduleLessons[currentIndex - 1];
+      reorderLessonMutation.mutate({ lessonId: lesson.id, newOrder: prevLesson.order });
+      reorderLessonMutation.mutate({ lessonId: prevLesson.id, newOrder: lesson.order });
+    }
+  };
+
+  const moveLessonDown = (lesson, moduleLessons) => {
+    const currentIndex = moduleLessons.findIndex(l => l.id === lesson.id);
+    if (currentIndex < moduleLessons.length - 1) {
+      const nextLesson = moduleLessons[currentIndex + 1];
+      reorderLessonMutation.mutate({ lessonId: lesson.id, newOrder: nextLesson.order });
+      reorderLessonMutation.mutate({ lessonId: nextLesson.id, newOrder: lesson.order });
+    }
   };
 
   if (isLoading || !courseData) {
@@ -442,7 +533,26 @@ export default function ManageCourse() {
                                className="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors"
                              >
                                <div className="flex items-center gap-3">
-                                 <GripVertical className="w-4 h-4 text-slate-600" />
+                                 <div className="flex flex-col gap-1">
+                                   <Button
+                                     size="icon"
+                                     variant="ghost"
+                                     onClick={() => moveLessonUp(lesson, moduleLessons)}
+                                     disabled={lessonIndex === 0}
+                                     className="h-4 w-4 p-0 text-slate-500 hover:text-white disabled:opacity-30"
+                                   >
+                                     <ChevronUp className="w-3 h-3" />
+                                   </Button>
+                                   <Button
+                                     size="icon"
+                                     variant="ghost"
+                                     onClick={() => moveLessonDown(lesson, moduleLessons)}
+                                     disabled={lessonIndex === moduleLessons.length - 1}
+                                     className="h-4 w-4 p-0 text-slate-500 hover:text-white disabled:opacity-30"
+                                   >
+                                     <ChevronDown className="w-3 h-3" />
+                                   </Button>
+                                 </div>
                                  <ContentIcon className="w-4 h-4 text-violet-400" />
                                  <div>
                                    <p className="text-white text-sm font-medium">
@@ -453,18 +563,28 @@ export default function ManageCourse() {
                                    </p>
                                  </div>
                                </div>
-                               <Button
-                                 size="sm"
-                                 variant="ghost"
-                                 onClick={() => {
-                                   if (confirm('Excluir esta aula?')) {
-                                     deleteLessonMutation.mutate(lesson.id);
-                                   }
-                                 }}
-                                 className="text-red-400 hover:text-red-300"
-                               >
-                                 <Trash2 className="w-4 h-4" />
-                               </Button>
+                               <div className="flex items-center gap-2">
+                                 <Button
+                                   size="sm"
+                                   variant="ghost"
+                                   onClick={() => handleEditLesson(lesson)}
+                                   className="text-violet-400 hover:text-violet-300"
+                                 >
+                                   <Edit className="w-4 h-4" />
+                                 </Button>
+                                 <Button
+                                   size="sm"
+                                   variant="ghost"
+                                   onClick={() => {
+                                     if (confirm('Excluir esta aula?')) {
+                                       deleteLessonMutation.mutate(lesson.id);
+                                     }
+                                   }}
+                                   className="text-red-400 hover:text-red-300"
+                                 >
+                                   <Trash2 className="w-4 h-4" />
+                                 </Button>
+                               </div>
                              </div>
                            );
                           })}
@@ -528,12 +648,27 @@ export default function ManageCourse() {
       </Dialog>
 
       {/* Lesson Dialog */}
-      <Dialog open={showLessonDialog} onOpenChange={setShowLessonDialog}>
+      <Dialog open={showLessonDialog} onOpenChange={(open) => {
+        setShowLessonDialog(open);
+        if (!open) {
+          setEditingLesson(null);
+          setNewLesson({
+            title: "",
+            description: "",
+            order: 1,
+            content_type: "video",
+            content_url: "",
+            video_url: "",
+            duration_seconds: 0,
+            requires_previous: true,
+          });
+        }
+      }}>
         <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Nova Aula</DialogTitle>
+            <DialogTitle>{editingLesson ? 'Editar Aula' : 'Nova Aula'}</DialogTitle>
             <DialogDescription className="text-slate-400">
-              Adicione uma aula ao módulo {selectedModule?.title}
+              {editingLesson ? `Edite a aula "${editingLesson.title}"` : `Adicione uma aula ao módulo ${selectedModule?.title}`}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -636,11 +771,11 @@ export default function ManageCourse() {
               Cancelar
             </Button>
             <Button
-              onClick={() => createLessonMutation.mutate(newLesson)}
-              disabled={!newLesson.title.trim() || (!newLesson.content_url && !newLesson.video_url) || createLessonMutation.isPending}
+              onClick={handleSaveLesson}
+              disabled={!newLesson.title.trim() || (!newLesson.content_url && !newLesson.video_url) || createLessonMutation.isPending || updateLessonMutation.isPending}
               className="bg-violet-600 hover:bg-violet-700"
             >
-              Criar Aula
+              {editingLesson ? 'Salvar Alterações' : 'Criar Aula'}
             </Button>
           </DialogFooter>
         </DialogContent>
