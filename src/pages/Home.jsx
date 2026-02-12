@@ -14,7 +14,11 @@ export default function Home() {
 
   useEffect(() => {
     if (user) {
-      navigate(createPageUrl('MyCourses'));
+      if (user.role === 'admin') {
+        navigate(createPageUrl('AdminDashboard'));
+      } else {
+        navigate(createPageUrl('MyCourses'));
+      }
     }
   }, [user, navigate]);
 
