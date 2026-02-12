@@ -408,10 +408,10 @@ export default function Player() {
             onMouseLeave={() => setShowControls(false)}
           >
             {contentType === 'pdf' ? (
-              <embed
-                src={contentUrl}
-                type="application/pdf"
+              <iframe
+                src={`https://docs.google.com/viewer?url=${encodeURIComponent(contentUrl)}&embedded=true`}
                 className="w-full h-full"
+                title={lesson.title}
               />
             ) : contentType === 'image' ? (
               <div className="w-full h-full flex items-center justify-center bg-slate-950 p-8">
