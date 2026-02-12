@@ -206,7 +206,7 @@ export default function Player() {
       
       const percentage = (video.currentTime / video.duration) * 100;
       
-      if (percentage >= 90 && !showCompletePrompt) {
+      if (percentage >= 80 && !showCompletePrompt) {
         const existingProgress = progressData.find(p => p.lesson_id === lessonId);
         if (!existingProgress?.completed) {
           setShowCompletePrompt(true);
@@ -688,7 +688,7 @@ export default function Player() {
               <div className="flex-1">
                 <h3 className="text-white font-semibold mb-1">Quase lá!</h3>
                 <p className="text-slate-400 text-sm mb-4">
-                  Você assistiu 90% desta aula. Deseja marcá-la como concluída?
+                  Você assistiu 80% desta aula. Deseja marcá-la como concluída?
                 </p>
                 <div className="flex gap-2">
                   <Button
