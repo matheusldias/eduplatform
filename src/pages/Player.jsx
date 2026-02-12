@@ -162,9 +162,23 @@ export default function Player() {
         });
       }
 
+      // Atualizar progresso no enrollment
+      const allLessons = await base44.entities.Lesson.filter({ course_id: courseId });
+      const allProgress = await base44.entities.Progress.filter({
+        user_id: user?.id,
+        course_id: courseId,
+      });
+      const completedCount = allProgress.filter(p => p.completed).length + (existingProgress?.completed ? 0 : 1);
+      const progressPercentage = (completedCount / allLessons.length) * 100;
+
       if (enrollment) {
         await base44.entities.Enrollment.update(enrollment.id, {
           last_watched_lesson_id: lessonId,
+          progress_percentage: progressPercentage,
+          completed_lessons: completedCount,
+          total_lessons: allLessons.length,
+          status: completedCount >= allLessons.length ? 'completed' : 'active',
+          completed_at: completedCount >= allLessons.length ? new Date().toISOString() : null,
         });
       }
     },
