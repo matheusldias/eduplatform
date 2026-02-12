@@ -23,6 +23,18 @@ export default function StudentProgress() {
   const urlParams = new URLSearchParams(window.location.search);
   const studentId = urlParams.get('id');
 
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  // Redirecionar não-admins
+  React.useEffect(() => {
+    if (currentUser && currentUser.role !== 'admin') {
+      navigate(createPageUrl('MyCourses'));
+    }
+  }, [currentUser, navigate]);
+
   const { data: student } = useQuery({
     queryKey: ['student', studentId],
     queryFn: async () => {

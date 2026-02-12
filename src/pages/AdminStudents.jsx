@@ -57,6 +57,18 @@ export default function AdminStudents() {
     password: "",
   });
 
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  // Redirecionar não-admins
+  React.useEffect(() => {
+    if (user && user.role !== 'admin') {
+      navigate(createPageUrl('MyCourses'));
+    }
+  }, [user, navigate]);
+
   const { data: students = [], isLoading } = useQuery({
     queryKey: ['students'],
     queryFn: async () => {
