@@ -409,7 +409,7 @@ export default function Player() {
           >
             {contentType === 'pdf' ? (
               <iframe
-                src={contentUrl}
+                src={`${contentUrl}#view=FitH`}
                 className="w-full h-full"
                 title={lesson.title}
               />
