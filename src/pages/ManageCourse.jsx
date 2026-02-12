@@ -13,6 +13,8 @@ import {
   Trash2,
   Eye,
   FileVideo,
+  FileText,
+  Image,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +56,8 @@ export default function ManageCourse() {
     title: "",
     description: "",
     order: 1,
+    content_type: "video",
+    content_url: "",
     video_url: "",
     duration_seconds: 0,
     requires_previous: true,
@@ -131,6 +135,8 @@ export default function ManageCourse() {
         title: "",
         description: "",
         order: 1,
+        content_type: "video",
+        content_url: "",
         video_url: "",
         duration_seconds: 0,
         requires_previous: true,
@@ -171,16 +177,16 @@ export default function ManageCourse() {
     }
   };
 
-  const handleUploadVideo = async (e) => {
+  const handleUploadContent = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploadingVideo(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setNewLesson({ ...newLesson, video_url: file_url });
+      setNewLesson({ ...newLesson, content_url: file_url, video_url: file_url });
     } catch (error) {
-      console.error("Erro ao fazer upload do vídeo:", error);
+      console.error("Erro ao fazer upload:", error);
     } finally {
       setUploadingVideo(false);
     }
@@ -390,37 +396,40 @@ export default function ManageCourse() {
                         <p className="text-slate-500 text-sm">Nenhuma aula neste módulo</p>
                       ) : (
                         <div className="space-y-2">
-                          {moduleLessons.map((lesson, lessonIndex) => (
-                            <div
-                              key={lesson.id}
-                              className="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors"
-                            >
-                              <div className="flex items-center gap-3">
-                                <GripVertical className="w-4 h-4 text-slate-600" />
-                                <FileVideo className="w-4 h-4 text-violet-400" />
-                                <div>
-                                  <p className="text-white text-sm font-medium">
-                                    Aula {lessonIndex + 1}: {lesson.title}
-                                  </p>
-                                  <p className="text-xs text-slate-400">
-                                    {Math.floor(lesson.duration_seconds / 60)} min
-                                  </p>
-                                </div>
-                              </div>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => {
-                                  if (confirm('Excluir esta aula?')) {
-                                    deleteLessonMutation.mutate(lesson.id);
-                                  }
-                                }}
-                                className="text-red-400 hover:text-red-300"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          ))}
+                          {moduleLessons.map((lesson, lessonIndex) => {
+                           const ContentIcon = lesson.content_type === 'pdf' ? FileText : lesson.content_type === 'image' ? Image : FileVideo;
+                           return (
+                             <div
+                               key={lesson.id}
+                               className="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors"
+                             >
+                               <div className="flex items-center gap-3">
+                                 <GripVertical className="w-4 h-4 text-slate-600" />
+                                 <ContentIcon className="w-4 h-4 text-violet-400" />
+                                 <div>
+                                   <p className="text-white text-sm font-medium">
+                                     Aula {lessonIndex + 1}: {lesson.title}
+                                   </p>
+                                   <p className="text-xs text-slate-400">
+                                     {lesson.content_type === 'video' ? `${Math.floor(lesson.duration_seconds / 60)} min` : lesson.content_type === 'pdf' ? 'PDF' : 'Imagem'}
+                                   </p>
+                                 </div>
+                               </div>
+                               <Button
+                                 size="sm"
+                                 variant="ghost"
+                                 onClick={() => {
+                                   if (confirm('Excluir esta aula?')) {
+                                     deleteLessonMutation.mutate(lesson.id);
+                                   }
+                                 }}
+                                 className="text-red-400 hover:text-red-300"
+                               >
+                                 <Trash2 className="w-4 h-4" />
+                               </Button>
+                             </div>
+                           );
+                          })}
                         </div>
                       )}
                     </CardContent>
@@ -507,39 +516,75 @@ export default function ManageCourse() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Vídeo</Label>
-              <Input
-                type="file"
-                accept="video/*"
-                onChange={handleUploadVideo}
-                disabled={uploadingVideo}
-                className="bg-slate-800 border-slate-700 text-white"
-              />
-              {uploadingVideo && <p className="text-sm text-slate-400">Fazendo upload...</p>}
-              {newLesson.video_url && (
-                <p className="text-sm text-green-400">✓ Vídeo carregado</p>
-              )}
+              <Label>Tipo de Conteúdo</Label>
+              <Select
+                value={newLesson.content_type}
+                onValueChange={(value) => setNewLesson({ ...newLesson, content_type: value, content_url: "", video_url: "" })}
+              >
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-slate-800">
+                  <SelectItem value="video">Vídeo</SelectItem>
+                  <SelectItem value="pdf">PDF</SelectItem>
+                  <SelectItem value="image">Imagem</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div className="space-y-2">
-              <Label>ou URL do YouTube</Label>
-              <Input
-                type="text"
-                placeholder="https://www.youtube.com/watch?v=..."
-                value={newLesson.video_url}
-                onChange={(e) => setNewLesson({ ...newLesson, video_url: e.target.value })}
-                className="bg-slate-800 border-slate-700 text-white"
-              />
-              <p className="text-xs text-slate-500">Cole o link de um vídeo do YouTube</p>
-            </div>
-            <div className="space-y-2">
-              <Label>Duração (segundos)</Label>
-              <Input
-                type="number"
-                value={newLesson.duration_seconds}
-                onChange={(e) => setNewLesson({ ...newLesson, duration_seconds: parseInt(e.target.value) || 0 })}
-                className="bg-slate-800 border-slate-700 text-white"
-              />
-            </div>
+            
+            {newLesson.content_type === 'video' ? (
+              <>
+                <div className="space-y-2">
+                  <Label>Upload de Vídeo</Label>
+                  <Input
+                    type="file"
+                    accept="video/*"
+                    onChange={handleUploadContent}
+                    disabled={uploadingVideo}
+                    className="bg-slate-800 border-slate-700 text-white"
+                  />
+                  {uploadingVideo && <p className="text-sm text-slate-400">Fazendo upload...</p>}
+                  {newLesson.content_url && (
+                    <p className="text-sm text-green-400">✓ Arquivo carregado</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label>ou URL do YouTube</Label>
+                  <Input
+                    type="text"
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    value={newLesson.video_url}
+                    onChange={(e) => setNewLesson({ ...newLesson, video_url: e.target.value, content_url: e.target.value })}
+                    className="bg-slate-800 border-slate-700 text-white"
+                  />
+                  <p className="text-xs text-slate-500">Cole o link de um vídeo do YouTube</p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Duração (segundos)</Label>
+                  <Input
+                    type="number"
+                    value={newLesson.duration_seconds}
+                    onChange={(e) => setNewLesson({ ...newLesson, duration_seconds: parseInt(e.target.value) || 0 })}
+                    className="bg-slate-800 border-slate-700 text-white"
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="space-y-2">
+                <Label>Upload de {newLesson.content_type === 'pdf' ? 'PDF' : 'Imagem'}</Label>
+                <Input
+                  type="file"
+                  accept={newLesson.content_type === 'pdf' ? '.pdf' : 'image/*'}
+                  onChange={handleUploadContent}
+                  disabled={uploadingVideo}
+                  className="bg-slate-800 border-slate-700 text-white"
+                />
+                {uploadingVideo && <p className="text-sm text-slate-400">Fazendo upload...</p>}
+                {newLesson.content_url && (
+                  <p className="text-sm text-green-400">✓ Arquivo carregado</p>
+                )}
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button
@@ -554,7 +599,7 @@ export default function ManageCourse() {
             </Button>
             <Button
               onClick={() => createLessonMutation.mutate(newLesson)}
-              disabled={!newLesson.title.trim() || !newLesson.video_url || createLessonMutation.isLoading}
+              disabled={!newLesson.title.trim() || (!newLesson.content_url && !newLesson.video_url) || createLessonMutation.isLoading}
               className="bg-violet-600 hover:bg-violet-700"
             >
               Criar Aula
