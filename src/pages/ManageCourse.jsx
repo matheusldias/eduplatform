@@ -118,18 +118,30 @@ export default function ManageCourse() {
   });
 
   const createLessonMutation = useMutation({
-    mutationFn: (data) => {
+    mutationFn: async (data) => {
       const moduleId = selectedModule.id;
       const moduleLessons = lessons.filter(l => l.module_id === moduleId);
-      return base44.entities.Lesson.create({
+      const newLesson = await base44.entities.Lesson.create({
         ...data,
         course_id: courseId,
         module_id: moduleId,
         order: moduleLessons.length + 1,
       });
+      
+      // Atualizar contadores do curso
+      const allLessons = await base44.entities.Lesson.filter({ course_id: courseId });
+      const totalDuration = allLessons.reduce((sum, l) => sum + (l.duration_seconds || 0), 0);
+      await base44.entities.Course.update(courseId, {
+        total_lessons: allLessons.length,
+        total_duration_minutes: Math.floor(totalDuration / 60),
+      });
+      
+      return newLesson;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lessons', courseId] });
+      queryClient.invalidateQueries({ queryKey: ['course', courseId] });
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
       setShowLessonDialog(false);
       setNewLesson({
         title: "",
@@ -153,9 +165,21 @@ export default function ManageCourse() {
   });
 
   const deleteLessonMutation = useMutation({
-    mutationFn: (lessonId) => base44.entities.Lesson.delete(lessonId),
+    mutationFn: async (lessonId) => {
+      await base44.entities.Lesson.delete(lessonId);
+      
+      // Atualizar contadores do curso
+      const allLessons = await base44.entities.Lesson.filter({ course_id: courseId });
+      const totalDuration = allLessons.reduce((sum, l) => sum + (l.duration_seconds || 0), 0);
+      await base44.entities.Course.update(courseId, {
+        total_lessons: allLessons.length,
+        total_duration_minutes: Math.floor(totalDuration / 60),
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lessons', courseId] });
+      queryClient.invalidateQueries({ queryKey: ['course', courseId] });
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
     },
   });
 
