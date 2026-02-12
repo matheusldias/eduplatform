@@ -46,12 +46,13 @@ export default function Layout({ children, currentPageName }) {
   }
 
   const adminNav = [
-    { name: 'Cursos', icon: BookOpen, url: createPageUrl('AdminDashboard') },
+    { name: 'Gerenciar Cursos', icon: LayoutDashboard, url: createPageUrl('AdminDashboard') },
     { name: 'Alunos', icon: Users, url: createPageUrl('AdminStudents') },
   ];
 
   const studentNav = [
-    { name: 'Meus Cursos', icon: BookOpen, url: createPageUrl('MyCourses') },
+    { name: 'Catálogo', icon: BookOpen, url: createPageUrl('BrowseCourses') },
+    { name: 'Meus Cursos', icon: LayoutDashboard, url: createPageUrl('MyCourses') },
     { name: 'Certificados', icon: Award, url: createPageUrl('Certificates') },
   ];
 
