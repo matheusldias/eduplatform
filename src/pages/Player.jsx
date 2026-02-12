@@ -408,17 +408,11 @@ export default function Player() {
             onMouseLeave={() => setShowControls(false)}
           >
             {contentType === 'pdf' ? (
-              <object
-                data={contentUrl}
+              <embed
+                src={contentUrl}
                 type="application/pdf"
                 className="w-full h-full"
-              >
-                <iframe
-                  src={`${contentUrl}#view=FitH`}
-                  className="w-full h-full"
-                  title={lesson.title}
-                />
-              </object>
+              />
             ) : contentType === 'image' ? (
               <div className="w-full h-full flex items-center justify-center bg-slate-950 p-8">
                 <img
