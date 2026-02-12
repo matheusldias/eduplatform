@@ -586,11 +586,11 @@ export default function ManageCourse() {
                   <p className="text-xs text-slate-500">Cole o link de um vídeo do YouTube</p>
                 </div>
                 <div className="space-y-2">
-                  <Label>Duração (segundos)</Label>
+                  <Label>Duração (minutos)</Label>
                   <Input
                     type="number"
-                    value={newLesson.duration_seconds}
-                    onChange={(e) => setNewLesson({ ...newLesson, duration_seconds: parseInt(e.target.value) || 0 })}
+                    value={Math.floor(newLesson.duration_seconds / 60)}
+                    onChange={(e) => setNewLesson({ ...newLesson, duration_seconds: (parseInt(e.target.value) || 0) * 60 })}
                     className="bg-slate-800 border-slate-700 text-white"
                   />
                 </div>
