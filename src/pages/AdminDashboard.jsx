@@ -367,10 +367,10 @@ export default function AdminDashboard() {
             </Button>
             <Button
               onClick={handleCreateCourse}
-              disabled={!newCourse.title.trim() || createCourseMutation.isLoading}
+              disabled={!newCourse.title.trim() || createCourseMutation.isPending}
               className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
             >
-              {createCourseMutation.isLoading ? 'Criando...' : 'Criar Curso'}
+              {createCourseMutation.isPending ? 'Criando...' : 'Criar Curso'}
             </Button>
           </DialogFooter>
         </DialogContent>
