@@ -66,12 +66,15 @@ export default function AdminDashboard() {
     queryFn: () => base44.auth.me(),
   });
 
-  // Redirecionar não-admins
+  const isAdmin = user?.role === 'admin' || user?.custom_role === 'admin';
+  const isGestor = user?.custom_role === 'gestor';
+
+  // Redirecionar alunos
   React.useEffect(() => {
-    if (user && user.role !== 'admin') {
+    if (user && !isAdmin && !isGestor) {
       navigate(createPageUrl('MyCourses'));
     }
-  }, [user, navigate]);
+  }, [user, isAdmin, isGestor, navigate]);
 
   const { data: courses = [], isLoading } = useQuery({
     queryKey: ['courses'],
@@ -199,13 +202,15 @@ export default function AdminDashboard() {
           </h1>
           <p className="text-slate-400">Gerencie seus cursos e acompanhe o desempenho</p>
         </div>
-        <Button
-          onClick={() => setShowCreateDialog(true)}
-          className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 shadow-lg shadow-violet-500/30"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Curso
-        </Button>
+        {isAdmin && (
+          <Button
+            onClick={() => setShowCreateDialog(true)}
+            className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 shadow-lg shadow-violet-500/30"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Curso
+          </Button>
+        )}
       </div>
 
       {/* Stats Grid */}
@@ -309,40 +314,51 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white hover:bg-slate-800">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-slate-900 border-slate-800">
-                      <DropdownMenuItem
-                        onClick={() => navigate(createPageUrl('ManageCourse') + '?id=' + course.id)}
-                        className="text-slate-300 focus:bg-slate-800 focus:text-white cursor-pointer"
-                      >
-                        <Edit className="w-4 h-4 mr-2" />
-                        Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => navigate(createPageUrl('CourseDetail') + '?id=' + course.id)}
-                        className="text-slate-300 focus:bg-slate-800 focus:text-white cursor-pointer"
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
-                        Visualizar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          if (confirm('Tem certeza que deseja excluir este curso?')) {
-                            deleteCourseMutation.mutate(course.id);
-                          }
-                        }}
-                        className="text-red-400 focus:bg-slate-800 focus:text-red-400 cursor-pointer"
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Excluir
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  {isAdmin ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white hover:bg-slate-800">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-slate-900 border-slate-800">
+                        <DropdownMenuItem
+                          onClick={() => navigate(createPageUrl('ManageCourse') + '?id=' + course.id)}
+                          className="text-slate-300 focus:bg-slate-800 focus:text-white cursor-pointer"
+                        >
+                          <Edit className="w-4 h-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => navigate(createPageUrl('CourseDetail') + '?id=' + course.id)}
+                          className="text-slate-300 focus:bg-slate-800 focus:text-white cursor-pointer"
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          Visualizar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            if (confirm('Tem certeza que deseja excluir este curso?')) {
+                              deleteCourseMutation.mutate(course.id);
+                            }
+                          }}
+                          className="text-red-400 focus:bg-slate-800 focus:text-red-400 cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => navigate(createPageUrl('CourseDetail') + '?id=' + course.id)}
+                      className="text-slate-400 hover:text-white hover:bg-slate-800"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>

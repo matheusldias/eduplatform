@@ -16,11 +16,14 @@ export default function StoreProgress() {
     queryFn: () => base44.auth.me(),
   });
 
+  const isAdmin = user?.role === 'admin' || user?.custom_role === 'admin';
+  const isGestor = user?.custom_role === 'gestor';
+
   React.useEffect(() => {
-    if (user && user.role !== 'admin') {
+    if (user && !isAdmin && !isGestor) {
       navigate(createPageUrl('MyCourses'));
     }
-  }, [user, navigate]);
+  }, [user, isAdmin, isGestor, navigate]);
 
   const { data: stores = [] } = useQuery({
     queryKey: ['stores'],
@@ -62,7 +65,7 @@ export default function StoreProgress() {
     };
   });
 
-  if (!user || user.role !== 'admin') {
+  if (!user || (!isAdmin && !isGestor)) {
     return null;
   }
 

@@ -59,6 +59,7 @@ export default function AdminStudents() {
     email: "",
     password: "",
     store_id: "",
+    custom_role: "aluno",
   });
 
   const { data: user } = useQuery({
@@ -66,12 +67,15 @@ export default function AdminStudents() {
     queryFn: () => base44.auth.me(),
   });
 
-  // Redirecionar não-admins
+  const isAdmin = user?.role === 'admin' || user?.custom_role === 'admin';
+  const isGestor = user?.custom_role === 'gestor';
+
+  // Redirecionar alunos
   React.useEffect(() => {
-    if (user && user.role !== 'admin') {
+    if (user && !isAdmin && !isGestor) {
       navigate(createPageUrl('MyCourses'));
     }
-  }, [user, navigate]);
+  }, [user, isAdmin, isGestor, navigate]);
 
   const { data: students = [], isLoading } = useQuery({
     queryKey: ['students'],
@@ -263,13 +267,15 @@ export default function AdminStudents() {
           </h1>
           <p className="text-slate-400">Cadastre alunos e gerencie matrículas</p>
         </div>
-        <Button
-          onClick={() => setShowCreateDialog(true)}
-          className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 shadow-lg shadow-violet-500/30"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Aluno
-        </Button>
+        {isAdmin && (
+          <Button
+            onClick={() => setShowCreateDialog(true)}
+            className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 shadow-lg shadow-violet-500/30"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Aluno
+          </Button>
+        )}
       </div>
 
       {/* Stats */}
@@ -381,24 +387,28 @@ export default function AdminStudents() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => openStoreDialog(student)}
-                        className="border-slate-700 text-slate-300 hover:bg-slate-800"
-                      >
-                        <Store className="w-4 h-4 mr-2" />
-                        Loja
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => openEnrollDialog(student)}
-                        className="border-slate-700 text-slate-300 hover:bg-slate-800"
-                      >
-                        <BookOpen className="w-4 h-4 mr-2" />
-                        Matrículas
-                      </Button>
+                      {isAdmin && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openStoreDialog(student)}
+                            className="border-slate-700 text-slate-300 hover:bg-slate-800"
+                          >
+                            <Store className="w-4 h-4 mr-2" />
+                            Loja
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openEnrollDialog(student)}
+                            className="border-slate-700 text-slate-300 hover:bg-slate-800"
+                          >
+                            <BookOpen className="w-4 h-4 mr-2" />
+                            Matrículas
+                          </Button>
+                        </>
+                      )}
                       <Button
                         size="sm"
                         onClick={() => navigate(createPageUrl('StudentProgress') + '?id=' + student.id)}

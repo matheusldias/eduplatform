@@ -37,7 +37,9 @@ export default function Layout({ children, currentPageName }) {
     base44.auth.logout();
   };
 
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin' || user?.custom_role === 'admin';
+  const isGestor = user?.custom_role === 'gestor';
+  const isAluno = user?.role === 'user' && (!user?.custom_role || user?.custom_role === 'aluno');
   const isPlayerPage = currentPageName === 'Player';
 
   // Se for página do player, não mostrar layout
@@ -52,13 +54,19 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Configurações', icon: Settings, url: createPageUrl('Settings') },
   ];
 
+  const gestorNav = [
+    { name: 'Dashboard', icon: LayoutDashboard, url: createPageUrl('AdminDashboard') },
+    { name: 'Alunos', icon: Users, url: createPageUrl('AdminStudents') },
+    { name: 'Progresso', icon: LayoutDashboard, url: createPageUrl('StoreProgress') },
+  ];
+
   const studentNav = [
     { name: 'Catálogo', icon: BookOpen, url: createPageUrl('BrowseCourses') },
     { name: 'Meus Cursos', icon: LayoutDashboard, url: createPageUrl('MyCourses') },
     { name: 'Certificados', icon: Award, url: createPageUrl('Certificates') },
   ];
 
-  const navigation = isAdmin ? adminNav : studentNav;
+  const navigation = isAdmin ? adminNav : isGestor ? gestorNav : studentNav;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
@@ -115,7 +123,9 @@ export default function Layout({ children, currentPageName }) {
                     <DropdownMenuLabel className="text-slate-300">
                       <div className="flex flex-col">
                         <span className="text-white">{user.full_name}</span>
-                        <span className="text-xs text-slate-400 font-normal">{user.email}</span>
+                        <span className="text-xs text-slate-400 font-normal">
+                          {isAdmin ? 'Admin' : isGestor ? 'Gestor' : 'Aluno'}
+                        </span>
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator className="bg-slate-800" />
