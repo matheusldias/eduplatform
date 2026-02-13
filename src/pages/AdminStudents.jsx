@@ -110,7 +110,7 @@ export default function AdminStudents() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['students'] });
       setShowCreateDialog(false);
-      setNewStudent({ full_name: "", email: "", password: "" });
+      setNewStudent({ full_name: "", email: "", password: "", store_id: "", custom_role: "aluno" });
     },
   });
 
@@ -484,6 +484,21 @@ export default function AdminStudents() {
                       {store.name} ({store.code})
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="role">Perfil</Label>
+              <Select
+                value={newStudent.custom_role}
+                onValueChange={(value) => setNewStudent({ ...newStudent, custom_role: value })}
+              >
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  <SelectItem value="aluno">Aluno</SelectItem>
+                  <SelectItem value="gestor">Gestor</SelectItem>
                 </SelectContent>
               </Select>
             </div>
