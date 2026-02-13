@@ -221,10 +221,13 @@ export default function Player() {
       
       const percentage = (video.currentTime / video.duration) * 100;
       
-      if (percentage >= 80 && !showCompletePrompt) {
-        const existingProgress = progressData.find(p => p.lesson_id === lessonId);
-        if (!existingProgress?.completed) {
-          setShowCompletePrompt(true);
+      if (percentage >= 80) {
+        setCanComplete(true);
+        if (!showCompletePrompt) {
+          const existingProgress = progressData.find(p => p.lesson_id === lessonId);
+          if (!existingProgress?.completed) {
+            setShowCompletePrompt(true);
+          }
         }
       }
     };
