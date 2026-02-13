@@ -33,9 +33,6 @@ export default function Settings() {
   const [formData, setFormData] = useState({
     name: "",
     code: "",
-    address: "",
-    phone: "",
-    manager: "",
     status: "active",
   });
 
@@ -84,9 +81,6 @@ export default function Settings() {
     setFormData({
       name: "",
       code: "",
-      address: "",
-      phone: "",
-      manager: "",
       status: "active",
     });
     setEditingStore(null);
@@ -98,9 +92,6 @@ export default function Settings() {
       setFormData({
         name: store.name || "",
         code: store.code || "",
-        address: store.address || "",
-        phone: store.phone || "",
-        manager: store.manager || "",
         status: store.status || "active",
       });
     } else {
@@ -249,29 +240,9 @@ export default function Settings() {
                           {store.status === 'active' ? 'Ativa' : 'Inativa'}
                         </Badge>
                       </div>
-                      <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-                        <div>
-                          <span className="text-slate-400">Código: </span>
-                          <span className="text-slate-300">{store.code}</span>
-                        </div>
-                        {store.manager && (
-                          <div>
-                            <span className="text-slate-400">Gerente: </span>
-                            <span className="text-slate-300">{store.manager}</span>
-                          </div>
-                        )}
-                        {store.address && (
-                          <div>
-                            <span className="text-slate-400">Endereço: </span>
-                            <span className="text-slate-300">{store.address}</span>
-                          </div>
-                        )}
-                        {store.phone && (
-                          <div>
-                            <span className="text-slate-400">Telefone: </span>
-                            <span className="text-slate-300">{store.phone}</span>
-                          </div>
-                        )}
+                      <div className="text-sm">
+                        <span className="text-slate-400">Código: </span>
+                        <span className="text-slate-300">{store.code}</span>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -328,33 +299,6 @@ export default function Settings() {
                   onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                   className="bg-slate-800 border-slate-700 text-white"
                   required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="address">Endereço</Label>
-                <Input
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="bg-slate-800 border-slate-700 text-white"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Telefone</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="bg-slate-800 border-slate-700 text-white"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="manager">Gerente</Label>
-                <Input
-                  id="manager"
-                  value={formData.manager}
-                  onChange={(e) => setFormData({ ...formData, manager: e.target.value })}
-                  className="bg-slate-800 border-slate-700 text-white"
                 />
               </div>
               <div className="space-y-2">
