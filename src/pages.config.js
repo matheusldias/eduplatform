@@ -58,6 +58,7 @@ import MyCourses from './pages/MyCourses';
 import Player from './pages/Player';
 import StudentProgress from './pages/StudentProgress';
 import Settings from './pages/Settings';
+import StoreProgress from './pages/StoreProgress';
 import __Layout from './Layout.jsx';
 
 
@@ -73,6 +74,7 @@ export const PAGES = {
     "Player": Player,
     "StudentProgress": StudentProgress,
     "Settings": Settings,
+    "StoreProgress": StoreProgress,
 }
 
 export const pagesConfig = {

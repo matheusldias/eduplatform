@@ -227,22 +227,8 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* Tabs Section */}
-      <Tabs defaultValue="courses" className="space-y-6">
-        <TabsList className="bg-slate-900/50 border-slate-800">
-          <TabsTrigger value="courses" className="data-[state=active]:bg-violet-600">
-            <BookOpen className="w-4 h-4 mr-2" />
-            Cursos
-          </TabsTrigger>
-          <TabsTrigger value="progress" className="data-[state=active]:bg-violet-600">
-            <BarChart3 className="w-4 h-4 mr-2" />
-            Progresso por Loja
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Courses Tab */}
-        <TabsContent value="courses">
-          <Card className="bg-slate-900/50 border-slate-800/50 backdrop-blur-sm">
+      {/* Courses Section */}
+      <Card className="bg-slate-900/50 border-slate-800/50 backdrop-blur-sm">
         <CardHeader>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <CardTitle className="text-white">Todos os Cursos</CardTitle>
@@ -363,113 +349,6 @@ export default function AdminDashboard() {
           )}
         </CardContent>
       </Card>
-        </TabsContent>
-
-        {/* Progress by Store Tab */}
-        <TabsContent value="progress">
-          <Card className="bg-slate-900/50 border-slate-800/50 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-white">Progresso por Loja</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {stores.length === 0 ? (
-                <div className="text-center py-12">
-                  <Store className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                  <p className="text-slate-400">Nenhuma loja cadastrada</p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {storeStats.map(({ store, studentCount, enrollmentCount, completedCount, avgProgress, completionRate }) => (
-                    <div
-                      key={store.id}
-                      className="p-6 rounded-lg bg-slate-800/30 border border-slate-800/50 hover:bg-slate-800/50 transition-all"
-                    >
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center">
-                            <Store className="w-6 h-6 text-white" />
-                          </div>
-                          <div>
-                            <h3 className="text-white font-semibold text-lg">{store.name}</h3>
-                            <p className="text-sm text-slate-400">Código: {store.code}</p>
-                          </div>
-                        </div>
-                        <Badge
-                          className={
-                            store.status === 'active'
-                              ? 'bg-green-500/10 text-green-400 border-green-500/20'
-                              : 'bg-red-500/10 text-red-400 border-red-500/20'
-                          }
-                        >
-                          {store.status === 'active' ? 'Ativa' : 'Inativa'}
-                        </Badge>
-                      </div>
-
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                        <div className="p-3 rounded-lg bg-slate-900/50">
-                          <p className="text-xs text-slate-400 mb-1">Alunos</p>
-                          <p className="text-2xl font-bold text-white">{studentCount}</p>
-                        </div>
-                        <div className="p-3 rounded-lg bg-slate-900/50">
-                          <p className="text-xs text-slate-400 mb-1">Matrículas</p>
-                          <p className="text-2xl font-bold text-white">{enrollmentCount}</p>
-                        </div>
-                        <div className="p-3 rounded-lg bg-slate-900/50">
-                          <p className="text-xs text-slate-400 mb-1">Concluídos</p>
-                          <p className="text-2xl font-bold text-green-400">{completedCount}</p>
-                        </div>
-                        <div className="p-3 rounded-lg bg-slate-900/50">
-                          <p className="text-xs text-slate-400 mb-1">Taxa Conclusão</p>
-                          <p className="text-2xl font-bold text-violet-400">{completionRate}%</p>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-slate-400">Progresso Médio</span>
-                          <span className="text-white font-semibold">{avgProgress}%</span>
-                        </div>
-                        <Progress value={avgProgress} className="h-2" />
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Summary Card */}
-                  <div className="p-6 rounded-lg bg-gradient-to-br from-violet-600/20 to-purple-600/20 border border-violet-500/30">
-                    <h3 className="text-white font-semibold mb-4">Resumo Geral</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div>
-                        <p className="text-xs text-slate-300 mb-1">Total Lojas</p>
-                        <p className="text-2xl font-bold text-white">{stores.length}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-300 mb-1">Total Alunos</p>
-                        <p className="text-2xl font-bold text-white">
-                          {storeStats.reduce((sum, s) => sum + s.studentCount, 0)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-300 mb-1">Total Matrículas</p>
-                        <p className="text-2xl font-bold text-white">
-                          {storeStats.reduce((sum, s) => sum + s.enrollmentCount, 0)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-300 mb-1">Taxa Média</p>
-                        <p className="text-2xl font-bold text-white">
-                          {storeStats.length > 0
-                            ? Math.round(storeStats.reduce((sum, s) => sum + s.completionRate, 0) / storeStats.length)
-                            : 0}%
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
 
       {/* Create Course Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
