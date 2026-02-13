@@ -614,11 +614,11 @@ export default function Player() {
 
             <Button
               onClick={() => markAsCompleteMutation.mutate()}
-              disabled={markAsCompleteMutation.isLoading}
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+              disabled={markAsCompleteMutation.isLoading || (!canComplete && contentType === 'video')}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50"
             >
               <CheckCircle className="w-4 h-4 mr-2" />
-              Marcar como Concluída
+              {contentType === 'video' && !canComplete ? 'Assista 80% para concluir' : 'Marcar como Concluída'}
             </Button>
 
             <Button
