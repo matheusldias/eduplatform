@@ -48,6 +48,7 @@ export default function Layout({ children, currentPageName }) {
   const adminNav = [
     { name: 'Gerenciar Cursos', icon: LayoutDashboard, url: createPageUrl('AdminDashboard') },
     { name: 'Alunos', icon: Users, url: createPageUrl('AdminStudents') },
+    { name: 'Configurações', icon: Settings, url: createPageUrl('Settings') },
   ];
 
   const studentNav = [
