@@ -53,6 +53,7 @@ export default function Player() {
   const [showControls, setShowControls] = useState(true);
   const [showCompletePrompt, setShowCompletePrompt] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [canComplete, setCanComplete] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
