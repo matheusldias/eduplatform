@@ -55,6 +55,7 @@ export default function AdminStudents() {
     full_name: "",
     email: "",
     password: "",
+    store_id: "",
   });
 
   const { data: user } = useQuery({
@@ -85,6 +86,11 @@ export default function AdminStudents() {
   const { data: enrollments = [] } = useQuery({
     queryKey: ['allEnrollments'],
     queryFn: () => base44.entities.Enrollment.list(),
+  });
+
+  const { data: stores = [] } = useQuery({
+    queryKey: ['stores'],
+    queryFn: () => base44.entities.Store.list(),
   });
 
   const createStudentMutation = useMutation({
@@ -328,6 +334,12 @@ export default function AdminStudents() {
                         </h3>
                         <p className="text-sm text-slate-400">{student.email}</p>
                         <div className="flex items-center gap-3 mt-2 text-xs text-slate-500">
+                          {student.store_name && (
+                            <>
+                              <span className="text-violet-400">🏪 {student.store_name}</span>
+                              <span>•</span>
+                            </>
+                          )}
                           <span>{stats.enrolled} curso(s)</span>
                           <span>•</span>
                           <span>{stats.completed} concluído(s)</span>
@@ -404,6 +416,25 @@ export default function AdminStudents() {
                 onChange={(e) => setNewStudent({ ...newStudent, password: e.target.value })}
                 className="bg-slate-800 border-slate-700 text-white"
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="store">Loja</Label>
+              <Select
+                value={newStudent.store_id}
+                onValueChange={(value) => setNewStudent({ ...newStudent, store_id: value })}
+              >
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                  <SelectValue placeholder="Selecione uma loja" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  <SelectItem value={null}>Nenhuma loja</SelectItem>
+                  {stores.filter(s => s.status === 'active').map((store) => (
+                    <SelectItem key={store.id} value={store.id}>
+                      {store.name} ({store.code})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
