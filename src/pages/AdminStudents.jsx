@@ -13,6 +13,7 @@ import {
   BookOpen,
   CheckCircle,
   TrendingUp,
+  Store,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,8 +49,10 @@ export default function AdminStudents() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEnrollDialog, setShowEnrollDialog] = useState(false);
+  const [showStoreDialog, setShowStoreDialog] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [selectedCourses, setSelectedCourses] = useState([]);
+  const [selectedStoreId, setSelectedStoreId] = useState("");
   
   const [newStudent, setNewStudent] = useState({
     full_name: "",
@@ -153,6 +156,22 @@ export default function AdminStudents() {
     },
   });
 
+  const updateStudentStoreMutation = useMutation({
+    mutationFn: async ({ studentId, storeId }) => {
+      const store = stores.find(s => s.id === storeId);
+      return base44.entities.User.update(studentId, {
+        store_id: storeId || null,
+        store_name: store ? store.name : null,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['students'] });
+      setShowStoreDialog(false);
+      setSelectedStudent(null);
+      setSelectedStoreId("");
+    },
+  });
+
   const handleCreateStudent = () => {
     if (!newStudent.full_name || !newStudent.email || !newStudent.password) {
       alert('Preencha todos os campos');
@@ -201,6 +220,19 @@ export default function AdminStudents() {
     const enrolledCourseIds = studentEnrollments.map(e => e.course_id);
     setSelectedCourses(enrolledCourseIds);
     setShowEnrollDialog(true);
+  };
+
+  const openStoreDialog = (student) => {
+    setSelectedStudent(student);
+    setSelectedStoreId(student.store_id || "");
+    setShowStoreDialog(true);
+  };
+
+  const handleUpdateStore = () => {
+    updateStudentStoreMutation.mutate({
+      studentId: selectedStudent.id,
+      storeId: selectedStoreId,
+    });
   };
 
   const toggleCourseSelection = (courseId) => {
@@ -352,6 +384,15 @@ export default function AdminStudents() {
                       <Button
                         size="sm"
                         variant="outline"
+                        onClick={() => openStoreDialog(student)}
+                        className="border-slate-700 text-slate-300 hover:bg-slate-800"
+                      >
+                        <Store className="w-4 h-4 mr-2" />
+                        Loja
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
                         onClick={() => openEnrollDialog(student)}
                         className="border-slate-700 text-slate-300 hover:bg-slate-800"
                       >
@@ -451,6 +492,59 @@ export default function AdminStudents() {
               className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
             >
               {createStudentMutation.isLoading ? 'Cadastrando...' : 'Cadastrar Aluno'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Store Dialog */}
+      <Dialog open={showStoreDialog} onOpenChange={setShowStoreDialog}>
+        <DialogContent className="bg-slate-900 border-slate-800 text-white">
+          <DialogHeader>
+            <DialogTitle>Vincular Loja</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Aluno: {selectedStudent?.full_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="space-y-2">
+              <Label>Selecione a Loja</Label>
+              <Select
+                value={selectedStoreId}
+                onValueChange={setSelectedStoreId}
+              >
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                  <SelectValue placeholder="Selecione uma loja" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  <SelectItem value={null}>Nenhuma loja</SelectItem>
+                  {stores.filter(s => s.status === 'active').map((store) => (
+                    <SelectItem key={store.id} value={store.id}>
+                      {store.name} ({store.code})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowStoreDialog(false);
+                setSelectedStudent(null);
+                setSelectedStoreId("");
+              }}
+              className="border-slate-700 text-slate-300 hover:bg-slate-800"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleUpdateStore}
+              disabled={updateStudentStoreMutation.isPending}
+              className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
+            >
+              {updateStudentStoreMutation.isPending ? 'Salvando...' : 'Salvar'}
             </Button>
           </DialogFooter>
         </DialogContent>
