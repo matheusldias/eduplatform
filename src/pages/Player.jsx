@@ -202,6 +202,12 @@ export default function Player() {
     if (existingProgress && videoRef.current && existingProgress.last_position && !isYouTube) {
       videoRef.current.currentTime = existingProgress.last_position;
     }
+    // Se a aula já foi completada ou progresso é >= 80%, liberar botão
+    if (existingProgress?.completed || (existingProgress?.percentage || 0) >= 80) {
+      setCanComplete(true);
+    } else {
+      setCanComplete(false);
+    }
   }, [lessonId, progressData, isYouTube]);
 
   useEffect(() => {
