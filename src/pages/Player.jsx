@@ -231,9 +231,9 @@ export default function Player() {
     const handleTimeUpdate = () => {
       setCurrentTime(video.currentTime);
       
-      const percentage = (video.currentTime / video.duration) * 100;
+      const remaining = video.duration - video.currentTime;
       
-      if (percentage >= 80) {
+      if (video.duration && remaining <= 15) {
         setCanComplete(true);
         if (!showCompletePrompt) {
           const existingProgress = progressData.find(p => p.lesson_id === lessonId);
