@@ -58,6 +58,7 @@ export default function Player() {
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: lesson } = useQuery({
@@ -67,24 +68,28 @@ export default function Player() {
       return lessons[0];
     },
     enabled: !!lessonId,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: lessons = [] } = useQuery({
     queryKey: ['courseLessons', courseId],
     queryFn: () => base44.entities.Lesson.filter({ course_id: courseId }, 'order'),
     enabled: !!courseId,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: modules = [] } = useQuery({
     queryKey: ['courseModules', courseId],
     queryFn: () => base44.entities.Module.filter({ course_id: courseId }, 'order'),
     enabled: !!courseId,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: progressData = [] } = useQuery({
     queryKey: ['userProgress', user?.id, courseId],
     queryFn: () => base44.entities.Progress.filter({ user_id: user?.id, course_id: courseId }),
     enabled: !!user?.id && !!courseId,
+    staleTime: 30 * 1000,
   });
 
   const { data: enrollment } = useQuery({
@@ -97,6 +102,7 @@ export default function Player() {
       return enrollments[0];
     },
     enabled: !!user?.id && !!courseId,
+    staleTime: 30 * 1000,
   });
 
   // Detectar tipo de conteúdo
