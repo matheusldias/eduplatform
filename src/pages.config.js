@@ -56,9 +56,9 @@ import Home from './pages/Home';
 import ManageCourse from './pages/ManageCourse';
 import MyCourses from './pages/MyCourses';
 import Player from './pages/Player';
-import StudentProgress from './pages/StudentProgress';
 import Settings from './pages/Settings';
 import StoreProgress from './pages/StoreProgress';
+import StudentProgress from './pages/StudentProgress';
 import __Layout from './Layout.jsx';
 
 
@@ -72,9 +72,9 @@ export const PAGES = {
     "ManageCourse": ManageCourse,
     "MyCourses": MyCourses,
     "Player": Player,
-    "StudentProgress": StudentProgress,
     "Settings": Settings,
     "StoreProgress": StoreProgress,
+    "StudentProgress": StudentProgress,
 }
 
 export const pagesConfig = {
