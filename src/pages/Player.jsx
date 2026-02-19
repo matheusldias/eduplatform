@@ -71,10 +71,15 @@ export default function Player() {
     staleTime: 5 * 60 * 1000,
   });
 
+  const isAdmin = user?.role === 'admin' || user?.custom_role === 'admin' || user?.custom_role === 'gestor';
+
   const { data: lessons = [] } = useQuery({
-    queryKey: ['courseLessons', courseId],
-    queryFn: () => base44.entities.Lesson.filter({ course_id: courseId }, 'order'),
-    enabled: !!courseId,
+    queryKey: ['courseLessons', courseId, isAdmin],
+    queryFn: async () => {
+      const all = await base44.entities.Lesson.filter({ course_id: courseId }, 'order');
+      return isAdmin ? all : all.filter(l => l.status !== 'draft');
+    },
+    enabled: !!courseId && user !== undefined,
     staleTime: 5 * 60 * 1000,
   });
 
