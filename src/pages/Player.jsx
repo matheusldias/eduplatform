@@ -595,39 +595,38 @@ export default function Player() {
           </div>
 
           {/* Navigation Buttons */}
-          <div className="bg-slate-900/95 backdrop-blur-xl border-t border-slate-800/50 p-4 flex items-center justify-between">
+          <div className="bg-slate-900/95 backdrop-blur-xl border-t border-slate-800/50 p-3 flex items-center justify-between gap-2 flex-shrink-0">
             <Button
               onClick={handlePreviousLesson}
               disabled={!hasPrev}
               variant="outline"
-              className="border-slate-700 text-slate-300 hover:bg-slate-800"
+              size="sm"
+              className="border-slate-700 text-slate-300 hover:bg-slate-800 text-xs md:text-sm"
             >
-              <ChevronLeft className="w-4 h-4 mr-2" />
-              Anterior
+              <ChevronLeft className="w-4 h-4 md:mr-2" />
+              <span className="hidden md:inline">Anterior</span>
             </Button>
-
-            {contentType !== 'video' && (
-              <div className="text-slate-400 text-sm">
-                {contentType === 'pdf' ? 'Documento PDF' : 'Imagem'}
-              </div>
-            )}
 
             <Button
               onClick={() => markAsCompleteMutation.mutate()}
               disabled={markAsCompleteMutation.isLoading || (!canComplete && contentType === 'video')}
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50"
+              size="sm"
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 text-xs md:text-sm flex-1 md:flex-none max-w-[200px] md:max-w-none"
             >
-              <CheckCircle className="w-4 h-4 mr-2" />
-              {contentType === 'video' && !canComplete ? 'Assista 80% para concluir' : 'Marcar como Concluída'}
+              <CheckCircle className="w-4 h-4 mr-1 md:mr-2 flex-shrink-0" />
+              <span className="truncate">
+                {contentType === 'video' && !canComplete ? 'Assista 80%' : 'Marcar como Concluída'}
+              </span>
             </Button>
 
             <Button
               onClick={handleNextLesson}
               disabled={!hasNext}
-              className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
+              size="sm"
+              className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-xs md:text-sm"
             >
-              Próxima
-              <ChevronRight className="w-4 h-4 ml-2" />
+              <span className="hidden md:inline">Próxima</span>
+              <ChevronRight className="w-4 h-4 md:ml-2" />
             </Button>
           </div>
         </div>
