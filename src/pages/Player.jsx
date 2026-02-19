@@ -433,19 +433,19 @@ export default function Player() {
         {/* Video Player */}
         <div className="flex-1 flex flex-col bg-black relative min-h-0">
           <div
-            className="relative group w-full"
-            style={{ aspectRatio: '16/9' }}
+            className={`relative group w-full ${contentType === 'pdf' || contentType === 'image' ? 'flex-1 min-h-0' : ''}`}
+            style={contentType !== 'pdf' && contentType !== 'image' ? { aspectRatio: '16/9' } : { flex: 1, minHeight: 0 }}
             onMouseMove={() => setShowControls(true)}
             onMouseLeave={() => setShowControls(false)}
           >
             {contentType === 'pdf' ? (
               <iframe
                 src={`https://docs.google.com/viewer?url=${encodeURIComponent(contentUrl)}&embedded=true`}
-                className="w-full h-full"
+                className="w-full h-full absolute inset-0"
                 title={lesson.title}
               />
             ) : contentType === 'image' ? (
-              <div className="w-full h-full flex items-center justify-center bg-slate-950 p-8">
+              <div className="w-full h-full absolute inset-0 flex items-center justify-center bg-slate-950 p-8">
                 <img
                   src={contentUrl}
                   alt={lesson.title}
