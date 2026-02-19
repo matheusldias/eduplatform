@@ -635,10 +635,10 @@ export default function Player() {
         <AnimatePresence>
           {sidebarOpen && (
             <motion.div
-              initial={{ x: 300 }}
-              animate={{ x: 0 }}
-              exit={{ x: 300 }}
-              className="w-80 bg-slate-900/95 backdrop-blur-xl border-l border-slate-800/50 overflow-y-auto"
+              initial={{ x: 300, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 300, opacity: 0 }}
+              className="hidden md:block w-80 bg-slate-900/95 backdrop-blur-xl border-l border-slate-800/50 overflow-y-auto flex-shrink-0"
             >
               <div className="p-4 space-y-3">
                 <h3 className="text-white font-semibold text-lg mb-4">Conteúdo</h3>
