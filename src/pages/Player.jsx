@@ -216,9 +216,41 @@ export default function Player() {
     }
   }, [lessonId, progressData, isYouTube]);
 
+  // Rastrear tempo no YouTube via YouTube IFrame API (postMessage)
+  useEffect(() => {
+    if (!isYouTube) return;
+
+    const handleMessage = (event) => {
+      if (!event.origin.includes('youtube.com')) return;
+      try {
+        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        if (data?.event === 'infoDelivery' && data?.info) {
+          const ct = data.info.currentTime;
+          const dur = data.info.duration;
+          if (dur) setDuration(dur);
+          if (ct !== undefined) {
+            setCurrentTime(ct);
+            const remaining = (dur || lesson?.duration_seconds || 0) - ct;
+            if (remaining <= 15 && remaining >= 0) {
+              setCanComplete(true);
+              if (!showCompletePrompt) {
+                const existingProgress = progressData.find(p => p.lesson_id === lessonId);
+                if (!existingProgress?.completed) {
+                  setShowCompletePrompt(true);
+                }
+              }
+            }
+          }
+        }
+      } catch {}
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [isYouTube, lessonId, showCompletePrompt, progressData, lesson]);
+
   useEffect(() => {
     if (isYouTube) {
-      // Para YouTube, estimamos a duração baseada no campo duration_seconds
       if (lesson?.duration_seconds) {
         setDuration(lesson.duration_seconds);
       }
