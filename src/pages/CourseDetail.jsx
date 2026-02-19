@@ -48,10 +48,15 @@ export default function CourseDetail() {
     enabled: !!courseId,
   });
 
+  const isAdmin = user?.role === 'admin' || user?.custom_role === 'admin' || user?.custom_role === 'gestor';
+
   const { data: lessons = [] } = useQuery({
-    queryKey: ['lessons', courseId],
-    queryFn: () => base44.entities.Lesson.filter({ course_id: courseId }, 'order'),
-    enabled: !!courseId,
+    queryKey: ['lessons', courseId, isAdmin],
+    queryFn: async () => {
+      const all = await base44.entities.Lesson.filter({ course_id: courseId }, 'order');
+      return isAdmin ? all : all.filter(l => l.status !== 'draft');
+    },
+    enabled: !!courseId && user !== undefined,
   });
 
   const { data: enrollment } = useQuery({
