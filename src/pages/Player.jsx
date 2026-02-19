@@ -208,8 +208,8 @@ export default function Player() {
     if (existingProgress && videoRef.current && existingProgress.last_position && !isYouTube) {
       videoRef.current.currentTime = existingProgress.last_position;
     }
-    // Se a aula já foi completada ou progresso é >= 80%, liberar botão
-    if (existingProgress?.completed || (existingProgress?.percentage || 0) >= 80) {
+    // Se a aula já foi completada, liberar botão
+    if (existingProgress?.completed) {
       setCanComplete(true);
     } else {
       setCanComplete(false);
