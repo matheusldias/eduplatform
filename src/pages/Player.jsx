@@ -427,7 +427,7 @@ export default function Player() {
         {/* Video Player */}
         <div className="flex-1 flex flex-col bg-black relative min-h-0">
           <div
-            className="flex-1 relative group"
+            className="relative group w-full aspect-video md:flex-1 md:aspect-auto md:h-full"
             onMouseMove={() => setShowControls(true)}
             onMouseLeave={() => setShowControls(false)}
           >
