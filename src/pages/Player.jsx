@@ -52,7 +52,7 @@ export default function Player() {
   const [playbackRate, setPlaybackRate] = useState(1);
   const [showControls, setShowControls] = useState(true);
   const [showCompletePrompt, setShowCompletePrompt] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [canComplete, setCanComplete] = useState(false);
 
   const { data: user } = useQuery({
