@@ -487,7 +487,7 @@ export default function Player() {
             ) : isYouTube ? (
               <iframe
                 ref={iframeRef}
-                src={`https://www.youtube.com/embed/${youtubeId}?autoplay=0&rel=0`}
+                src={`https://www.youtube.com/embed/${youtubeId}?autoplay=0&rel=0&enablejsapi=1`}
                 className="w-full h-full"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
