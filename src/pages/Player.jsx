@@ -412,20 +412,20 @@ export default function Player() {
         >
           <X className="w-5 h-5" />
         </Button>
-        <h1 className="text-white font-semibold truncate flex-1 mx-4">{lesson.title}</h1>
+        <h1 className="text-white font-semibold truncate flex-1 mx-4 text-sm md:text-base">{lesson.title}</h1>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="text-slate-300 hover:text-white"
+          className="text-slate-300 hover:text-white hidden md:flex"
         >
           {sidebarOpen ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
         </Button>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden flex-col md:flex-row">
         {/* Video Player */}
-        <div className="flex-1 flex flex-col bg-black relative">
+        <div className="flex-1 flex flex-col bg-black relative min-h-0">
           <div
             className="flex-1 relative group"
             onMouseMove={() => setShowControls(true)}
