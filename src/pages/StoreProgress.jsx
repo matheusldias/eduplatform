@@ -60,7 +60,7 @@ export default function StoreProgress() {
       const studentEnrollments = enrollments.filter(e => e.user_id === student.id);
       const completed = studentEnrollments.filter(e => e.status === 'completed').length;
       const avgStudentProgress = studentEnrollments.length > 0
-        ? Math.round(studentEnrollments.reduce((sum, e) => sum + (e.progress_percentage || 0), 0) / studentEnrollments.length)
+        ? Math.min(100, Math.round(studentEnrollments.reduce((sum, e) => sum + Math.min(100, e.progress_percentage || 0), 0) / studentEnrollments.length))
         : 0;
       
       return {
