@@ -783,9 +783,9 @@ export default function Player() {
                 <CheckCircle className="w-6 h-6 text-green-400" />
               </div>
               <div className="flex-1">
-                <h3 className="text-white font-semibold mb-1">Quase lá!</h3>
+                <h3 className="text-white font-semibold mb-1">Marcar como concluída?</h3>
                 <p className="text-slate-400 text-sm mb-4">
-                  Você assistiu 80% desta aula. Deseja marcá-la como concluída?
+                  Deseja marcar esta aula como concluída?
                 </p>
                 <div className="flex gap-2">
                   <Button
