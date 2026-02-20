@@ -52,7 +52,7 @@ export default function StoreProgress() {
     );
     const completedEnrollments = storeEnrollments.filter(e => e.status === 'completed');
     const avgProgress = storeEnrollments.length > 0
-      ? Math.round(storeEnrollments.reduce((sum, e) => sum + (e.progress_percentage || 0), 0) / storeEnrollments.length)
+      ? Math.min(100, Math.round(storeEnrollments.reduce((sum, e) => sum + Math.min(100, e.progress_percentage || 0), 0) / storeEnrollments.length))
       : 0;
 
     // Ranking de alunos por conclusões
