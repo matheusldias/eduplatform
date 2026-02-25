@@ -124,6 +124,15 @@ export default function Player() {
   const youtubeId = getYouTubeId(contentUrl);
   const isYouTube = !!youtubeId && contentType === 'video';
 
+  const getGoogleDriveId = (url) => {
+    if (!url) return null;
+    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    return match ? match[1] : null;
+  };
+
+  const driveId = getGoogleDriveId(contentUrl);
+  const isGoogleDrive = !!driveId && contentType === 'video' && !isYouTube;
+
   const updateProgressMutation = useMutation({
     mutationFn: async (data) => {
       const existingProgress = progressData.find(p => p.lesson_id === lessonId);
