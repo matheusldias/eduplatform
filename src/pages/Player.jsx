@@ -541,6 +541,13 @@ export default function Player() {
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
+            ) : isGoogleDrive ? (
+              <iframe
+                src={`https://drive.google.com/file/d/${driveId}/preview`}
+                className="w-full h-full"
+                allow="autoplay"
+                allowFullScreen
+              />
             ) : (
               <video
                 ref={videoRef}
