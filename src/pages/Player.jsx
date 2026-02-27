@@ -696,7 +696,15 @@ export default function Player() {
             </Button>
 
             <Button
-              onClick={() => markAsCompleteMutation.mutate()}
+              onClick={() => {
+                markAsCompleteMutation.mutate();
+                const currentIndex = lessons.findIndex(l => l.id === lessonId);
+                if (currentIndex < lessons.length - 1) {
+                  handleNextLesson();
+                } else {
+                  navigate(createPageUrl('CourseDetail') + '?id=' + courseId);
+                }
+              }}
               disabled={markAsCompleteMutation.isLoading || (!canComplete && contentType === 'video')}
               size="sm"
               className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 text-xs md:text-sm flex-1 md:flex-none max-w-[200px] md:max-w-none"
