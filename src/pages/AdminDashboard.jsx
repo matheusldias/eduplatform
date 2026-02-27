@@ -119,9 +119,28 @@ export default function AdminDashboard() {
   });
 
   const deleteCourseMutation = useMutation({
-    mutationFn: (courseId) => base44.entities.Course.delete(courseId),
+    mutationFn: async (courseId) => {
+      // Deletar enrollments, progress, módulos e aulas relacionados
+      const [courseEnrollments, courseProgress, courseModules, courseLessons] = await Promise.all([
+        base44.entities.Enrollment.filter({ course_id: courseId }),
+        base44.entities.Progress.filter({ course_id: courseId }),
+        base44.entities.Module.filter({ course_id: courseId }),
+        base44.entities.Lesson.filter({ course_id: courseId }),
+      ]);
+
+      await Promise.all([
+        ...courseEnrollments.map(e => base44.entities.Enrollment.delete(e.id)),
+        ...courseProgress.map(p => base44.entities.Progress.delete(p.id)),
+        ...courseModules.map(m => base44.entities.Module.delete(m.id)),
+        ...courseLessons.map(l => base44.entities.Lesson.delete(l.id)),
+      ]);
+
+      return base44.entities.Course.delete(courseId);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['enrollments'] });
+      queryClient.invalidateQueries({ queryKey: ['allProgress'] });
     },
   });
 
