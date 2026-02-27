@@ -206,13 +206,6 @@ export default function Player() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userProgress'] });
       queryClient.invalidateQueries({ queryKey: ['enrollment'] });
-      setShowCompletePrompt(false);
-      const currentIndex = lessons.findIndex(l => l.id === lessonId);
-      if (currentIndex < lessons.length - 1) {
-        handleNextLesson();
-      } else {
-        navigate(createPageUrl('CourseDetail') + '?id=' + courseId);
-      }
     },
   });
 
