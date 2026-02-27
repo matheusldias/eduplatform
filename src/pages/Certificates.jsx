@@ -149,26 +149,18 @@ export default function Certificates() {
                   )}
                 </div>
 
-                <div className="pt-4 border-t border-slate-800 flex gap-3">
+                <div className="pt-4 border-t border-slate-800">
                   <Button
-                    className="flex-1 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
-                    onClick={() => {
-                      // TODO: Generate and download PDF certificate
-                      alert('Funcionalidade de download do certificado em desenvolvimento');
-                    }}
+                    className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
+                    onClick={() => handleDownload(certificate)}
+                    disabled={downloadingId === certificate.id}
                   >
-                    <Download className="w-4 h-4 mr-2" />
-                    Baixar PDF
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="border-slate-700 text-slate-300 hover:bg-slate-800"
-                    onClick={() => {
-                      // TODO: Share certificate
-                      alert('Funcionalidade de compartilhamento em desenvolvimento');
-                    }}
-                  >
-                    <ExternalLink className="w-4 h-4" />
+                    {downloadingId === certificate.id ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Download className="w-4 h-4 mr-2" />
+                    )}
+                    {downloadingId === certificate.id ? 'Gerando PDF...' : 'Baixar PDF'}
                   </Button>
                 </div>
 
