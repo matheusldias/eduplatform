@@ -790,46 +790,7 @@ export default function Player() {
         </AnimatePresence>
       </div>
 
-      {/* Complete Prompt */}
-      <AnimatePresence>
-        {showCompletePrompt && (
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-20 right-8 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-6 max-w-sm z-50"
-          >
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-green-600/20 flex items-center justify-center flex-shrink-0">
-                <CheckCircle className="w-6 h-6 text-green-400" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-white font-semibold mb-1">Marcar como concluída?</h3>
-                <p className="text-slate-400 text-sm mb-4">
-                  Deseja marcar esta aula como concluída?
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    onClick={() => markAsCompleteMutation.mutate()}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    Concluir
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setShowCompletePrompt(false)}
-                    className="border-slate-700 text-slate-300"
-                  >
-                    Depois
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
     </div>
   );
 }
