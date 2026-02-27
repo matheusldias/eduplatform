@@ -20,12 +20,58 @@ export default function Certificates() {
     enabled: !!user?.id,
   });
 
+  const [downloadingId, setDownloadingId] = useState(null);
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: 'long',
       year: 'numeric',
     });
+  };
+
+  const generateCertificateHtml = (certificate) => {
+    const formattedDate = formatDate(certificate.issued_at);
+    return `
+      <div id="cert-render" style="width:1000px;height:700px;background:white;border:15px solid #0b2a4a;padding:40px;box-sizing:border-box;position:relative;overflow:hidden;font-family:Georgia,serif;">
+        <div style="position:absolute;width:150px;height:150px;background:linear-gradient(135deg,#d4af37,#f5e6a6);border-radius:0 0 100% 0;top:0;right:0;"></div>
+        <div style="position:absolute;width:150px;height:150px;background:linear-gradient(135deg,#d4af37,#f5e6a6);border-radius:0 0 100% 0;bottom:0;left:0;transform:rotate(180deg);"></div>
+        <div style="text-align:center;font-size:48px;color:#0b2a4a;margin-top:40px;margin-bottom:20px;font-weight:bold;">Certificado</div>
+        <div style="text-align:center;font-size:18px;color:#333;margin-bottom:20px;">Este certificado atesta que</div>
+        <div style="text-align:center;">
+          <span style="font-size:42px;color:#c49b3d;font-style:italic;border-bottom:2px solid #0b2a4a;display:inline-block;padding:10px 30px;">${certificate.user_name || ''}</span>
+        </div>
+        <div style="text-align:center;font-size:18px;color:#333;margin-top:20px;">concluiu com sucesso o curso:</div>
+        <div style="text-align:center;font-size:26px;font-weight:bold;color:#0b2a4a;margin-top:6px;">${certificate.course_title || ''}</div>
+        <div style="text-align:center;font-size:18px;color:#333;margin-top:16px;">concluído em:</div>
+        <div style="text-align:center;font-size:26px;font-weight:bold;color:#0b2a4a;margin-top:4px;">${formattedDate}</div>
+        <div style="position:absolute;bottom:80px;left:50%;transform:translateX(-50%);text-align:center;">
+          <div style="width:300px;border-top:2px solid #0b2a4a;margin-bottom:10px;"></div>
+          <div style="font-size:18px;color:#333;">Responsável</div>
+        </div>
+      </div>
+    `;
+  };
+
+  const handleDownload = async (certificate) => {
+    setDownloadingId(certificate.id);
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    container.innerHTML = generateCertificateHtml(certificate);
+    document.body.appendChild(container);
+
+    const el = container.querySelector('#cert-render');
+    const canvas = await html2canvas(el, { scale: 2, useCORS: true });
+    const imgData = canvas.toDataURL('image/png');
+
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [1030, 730] });
+    pdf.addImage(imgData, 'PNG', 0, 0, 1030, 730);
+    pdf.save(`certificado-${certificate.code}.pdf`);
+
+    document.body.removeChild(container);
+    setDownloadingId(null);
   };
 
   return (
