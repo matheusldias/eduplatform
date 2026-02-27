@@ -710,7 +710,7 @@ export default function Player() {
             >
               <CheckCircle className="w-4 h-4 mr-1 md:mr-2 flex-shrink-0" />
               <span className="truncate">
-                {contentType === 'video' && !canComplete ? 'Assista 80%' : 'Marcar como Concluída'}
+                Marcar como Concluída
               </span>
             </Button>
 
