@@ -192,15 +192,22 @@ export default function Player() {
       const completedCount = allProgress.filter(p => p.completed).length + (existingProgress?.completed ? 0 : 1);
       const progressPercentage = (completedCount / allLessons.length) * 100;
 
+      const courseCompleted = completedCount >= allLessons.length;
+
       if (enrollment) {
         await base44.entities.Enrollment.update(enrollment.id, {
           last_watched_lesson_id: lessonId,
           progress_percentage: progressPercentage,
           completed_lessons: completedCount,
           total_lessons: allLessons.length,
-          status: completedCount >= allLessons.length ? 'completed' : 'active',
-          completed_at: completedCount >= allLessons.length ? new Date().toISOString() : null,
+          status: courseCompleted ? 'completed' : 'active',
+          completed_at: courseCompleted ? new Date().toISOString() : null,
         });
+      }
+
+      // Emitir certificado se o curso foi concluído
+      if (courseCompleted) {
+        base44.functions.invoke('issueCertificate', { course_id: courseId });
       }
     },
     onSuccess: () => {
