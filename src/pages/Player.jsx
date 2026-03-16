@@ -222,6 +222,11 @@ export default function Player() {
     }
   }, [lessonId, enrollment?.id]);
 
+  // Resetar canComplete imediatamente ao trocar de aula
+  useEffect(() => {
+    setCanComplete(false);
+  }, [lessonId]);
+
   useEffect(() => {
     const existingProgress = progressData.find(p => p.lesson_id === lessonId);
     if (existingProgress && videoRef.current && existingProgress.last_position && !isYouTube) {
@@ -460,8 +465,8 @@ export default function Player() {
   const isLessonUnlocked = (checkLesson) => {
     const lessonIndex = lessons.findIndex(l => l.id === checkLesson.id);
     if (lessonIndex === 0) return true;
-    if (!checkLesson.requires_previous) return true;
-    
+    if (isAdmin) return true;
+
     const previousLesson = lessons[lessonIndex - 1];
     const previousProgress = progressData.find(p => p.lesson_id === previousLesson.id);
     return previousProgress?.completed || false;
@@ -731,7 +736,8 @@ export default function Player() {
                 markAsCompleteMutation.mutate();
                 const currentIndex = lessons.findIndex(l => l.id === lessonId);
                 if (currentIndex < lessons.length - 1) {
-                  handleNextLesson();
+                  const nextLesson = lessons[currentIndex + 1];
+                  navigate(createPageUrl('Player') + `?lesson=${nextLesson.id}&course=${courseId}`);
                 } else {
                   navigate(createPageUrl('CourseDetail') + '?id=' + courseId);
                 }
