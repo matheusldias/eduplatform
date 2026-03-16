@@ -274,6 +274,14 @@ export default function Player() {
             JSON.stringify({ event: 'listening' }), '*'
           );
         }
+        // Quando o vídeo termina (state 0 = ended), liberar conclusão
+        if (data?.event === 'onStateChange' && data?.info === 0) {
+          setCanComplete(true);
+          const existingProgress = progressData.find(p => p.lesson_id === lessonId);
+          if (!existingProgress?.completed) {
+            setShowCompletePrompt(true);
+          }
+        }
       } catch {}
     };
 
@@ -742,7 +750,7 @@ export default function Player() {
                   navigate(createPageUrl('CourseDetail') + '?id=' + courseId);
                 }
               }}
-              disabled={markAsCompleteMutation.isLoading || (!canComplete && contentType === 'video')}
+              disabled={markAsCompleteMutation.isPending || (!canComplete && contentType === 'video')}
               size="sm"
               className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 text-xs md:text-sm flex-1 md:flex-none max-w-[200px] md:max-w-none"
             >
