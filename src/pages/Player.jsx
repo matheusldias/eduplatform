@@ -189,7 +189,7 @@ export default function Player() {
         user_id: user?.id,
         course_id: courseId,
       });
-      const completedCount = allProgress.filter(p => p.completed).length + (existingProgress?.completed ? 0 : 1);
+      const completedCount = allProgress.filter(p => p.completed).length;
       const progressPercentage = (completedCount / allLessons.length) * 100;
 
       const courseCompleted = completedCount >= allLessons.length;
@@ -220,12 +220,16 @@ export default function Player() {
     if (enrollment && lessonId) {
       updateEnrollmentMutation.mutate({ last_watched_lesson_id: lessonId });
     }
-  }, [lessonId]);
+  }, [lessonId, enrollment?.id]);
 
   useEffect(() => {
     const existingProgress = progressData.find(p => p.lesson_id === lessonId);
     if (existingProgress && videoRef.current && existingProgress.last_position && !isYouTube) {
       videoRef.current.currentTime = existingProgress.last_position;
+    }
+    // Inicializar ponto máximo assistido para controle anti-skip do YouTube
+    if (isYouTube) {
+      maxWatchedTimeRef.current = existingProgress?.last_position || 0;
     }
     // Se a aula já foi completada, liberar botão
     if (existingProgress?.completed) {
@@ -238,6 +242,7 @@ export default function Player() {
   // Rastrear tempo no YouTube via YouTube IFrame API
   const ytCurrentTimeRef = useRef(0);
   const ytDurationRef = useRef(0);
+  const maxWatchedTimeRef = useRef(0);
 
   useEffect(() => {
     if (!isYouTube) return;
@@ -269,10 +274,29 @@ export default function Player() {
 
     window.addEventListener('message', handleMessage);
 
-    // Polling a cada 500ms para verificar se chegamos nos últimos 15 segundos
+    // Polling a cada 500ms para verificar progresso e controlar seek
     const interval = setInterval(() => {
       const ct = ytCurrentTimeRef.current;
       const dur = ytDurationRef.current || lesson?.duration_seconds || 0;
+
+      // Bloquear adiantamento para alunos (não-admin)
+      if (!isAdmin && ct > 0 && maxWatchedTimeRef.current >= 0) {
+        const allowedUntil = maxWatchedTimeRef.current + 2; // 2s de tolerância
+        if (ct > allowedUntil) {
+          // Aluno tentou adiantar — voltar ao ponto máximo assistido
+          iframeRef.current?.contentWindow?.postMessage(
+            JSON.stringify({ event: 'command', func: 'seekTo', args: [maxWatchedTimeRef.current, true] }),
+            '*'
+          );
+        } else {
+          // Progresso normal — atualizar ponto máximo
+          maxWatchedTimeRef.current = Math.max(maxWatchedTimeRef.current, ct);
+        }
+      } else if (isAdmin) {
+        // Admin pode avançar livremente
+        maxWatchedTimeRef.current = Math.max(maxWatchedTimeRef.current, ct);
+      }
+
       if (dur > 0) {
         const remaining = dur - ct;
         if (remaining <= 15 && remaining >= 0 && ct > 0) {
@@ -296,7 +320,7 @@ export default function Player() {
       window.removeEventListener('message', handleMessage);
       clearInterval(interval);
     };
-  }, [isYouTube, lessonId, progressData, lesson]);
+  }, [isYouTube, lessonId, progressData, lesson, isAdmin]);
 
   useEffect(() => {
     if (isYouTube) {
