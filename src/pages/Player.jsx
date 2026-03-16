@@ -54,6 +54,7 @@ export default function Player() {
   const [showCompletePrompt, setShowCompletePrompt] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [canComplete, setCanComplete] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -222,9 +223,10 @@ export default function Player() {
     }
   }, [lessonId, enrollment?.id]);
 
-  // Resetar canComplete imediatamente ao trocar de aula
+  // Resetar canComplete e isCompleting imediatamente ao trocar de aula
   useEffect(() => {
     setCanComplete(false);
+    setIsCompleting(false);
   }, [lessonId]);
 
   useEffect(() => {
@@ -741,6 +743,8 @@ export default function Player() {
 
             <Button
               onClick={() => {
+                if (isCompleting) return;
+                setIsCompleting(true);
                 markAsCompleteMutation.mutate();
                 const currentIndex = lessons.findIndex(l => l.id === lessonId);
                 if (currentIndex < lessons.length - 1) {
@@ -750,7 +754,7 @@ export default function Player() {
                   navigate(createPageUrl('CourseDetail') + '?id=' + courseId);
                 }
               }}
-              disabled={markAsCompleteMutation.isPending || (!canComplete && contentType === 'video')}
+              disabled={isCompleting || markAsCompleteMutation.isPending || (!canComplete && contentType === 'video')}
               size="sm"
               className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 text-xs md:text-sm flex-1 md:flex-none max-w-[200px] md:max-w-none"
             >
