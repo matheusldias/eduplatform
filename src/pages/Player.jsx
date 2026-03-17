@@ -20,6 +20,7 @@ import {
   Lock,
   FileText,
   Image as ImageIcon,
+  GraduationCap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -527,6 +528,30 @@ export default function Player() {
   const getLessonsForModule = (moduleId) => {
     return lessons.filter(l => l.module_id === moduleId);
   };
+
+  // Bloquear alunos sem loja vinculada
+  const isAluno = user?.role === 'user' && (!user?.custom_role || user?.custom_role === 'aluno');
+  if (user && isAluno && !user.store_id) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+        <div className="text-center max-w-md">
+          <div className="w-16 h-16 rounded-2xl bg-slate-800 flex items-center justify-center mx-auto mb-6">
+            <GraduationCap className="w-8 h-8 text-slate-400" />
+          </div>
+          <h2 className="text-xl font-bold text-white mb-2">Acesso Restrito</h2>
+          <p className="text-slate-400 mb-6">
+            Sua conta ainda não está vinculada a uma loja. Entre em contato com o administrador para liberar seu acesso.
+          </p>
+          <button
+            onClick={() => base44.auth.logout(window.location.href)}
+            className="px-4 py-2 rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 transition-colors"
+          >
+            Sair
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!lesson) {
     return (
