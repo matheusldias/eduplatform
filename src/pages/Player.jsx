@@ -77,8 +77,18 @@ export default function Player() {
   const { data: lessons = [] } = useQuery({
     queryKey: ['courseLessons', courseId, isAdmin],
     queryFn: async () => {
-      const all = await base44.entities.Lesson.filter({ course_id: courseId }, 'order');
-      return isAdmin ? all : all.filter(l => l.status !== 'draft');
+      const [all, moduleList] = await Promise.all([
+        base44.entities.Lesson.filter({ course_id: courseId }, 'order'),
+        base44.entities.Module.filter({ course_id: courseId }, 'order'),
+      ]);
+      // Ordenar por módulo primeiro, depois por order dentro do módulo
+      const sorted = [...all].sort((a, b) => {
+        const moduleAIdx = moduleList.findIndex(m => m.id === a.module_id);
+        const moduleBIdx = moduleList.findIndex(m => m.id === b.module_id);
+        if (moduleAIdx !== moduleBIdx) return moduleAIdx - moduleBIdx;
+        return (a.order || 0) - (b.order || 0);
+      });
+      return isAdmin ? sorted : sorted.filter(l => l.status !== 'draft');
     },
     enabled: !!courseId && user !== undefined,
     staleTime: 5 * 60 * 1000,
