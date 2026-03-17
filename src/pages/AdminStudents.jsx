@@ -402,9 +402,9 @@ export default function AdminStudents() {
                             size="sm"
                             variant="outline"
                             onClick={() => openEnrollDialog(student)}
-                            className="border-slate-700 text-slate-300 hover:bg-slate-800"
+                            className="border-slate-700 text-black hover:bg-slate-800"
                           >
-                            <BookOpen className="w-4 h-4 mr-2" />
+                            <BookOpen className="w-4 h-4 mr-2 text-black" />
                             Matrículas
                           </Button>
                         </>
