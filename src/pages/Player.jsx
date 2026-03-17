@@ -238,6 +238,10 @@ export default function Player() {
   useEffect(() => {
     setCanComplete(false);
     setIsCompleting(false);
+    setCurrentTime(0);
+    setDuration(0);
+    ytCurrentTimeRef.current = 0;
+    ytDurationRef.current = 0;
   }, [lessonId]);
 
   useEffect(() => {
