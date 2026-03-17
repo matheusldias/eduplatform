@@ -162,14 +162,14 @@ export default function Player() {
   });
 
   const markAsCompleteMutation = useMutation({
-    mutationFn: async () => {
-      const existingProgress = progressData.find(p => p.lesson_id === lessonId);
+    mutationFn: async ({ lessonIdToComplete, snapshotProgressData, snapshotDuration, snapshotLesson }) => {
+      const existingProgress = snapshotProgressData.find(p => p.lesson_id === lessonIdToComplete);
       const updateData = {
         completed: true,
         completed_at: new Date().toISOString(),
         percentage: 100,
-        last_position: duration,
-        seconds_watched: duration,
+        last_position: snapshotDuration,
+        seconds_watched: snapshotDuration,
       };
 
       if (existingProgress) {
@@ -177,9 +177,9 @@ export default function Player() {
       } else {
         await base44.entities.Progress.create({
           user_id: user?.id,
-          lesson_id: lessonId,
+          lesson_id: lessonIdToComplete,
           course_id: courseId,
-          module_id: lesson?.module_id,
+          module_id: snapshotLesson?.module_id,
           ...updateData,
         });
       }
@@ -197,7 +197,7 @@ export default function Player() {
 
       if (enrollment) {
         await base44.entities.Enrollment.update(enrollment.id, {
-          last_watched_lesson_id: lessonId,
+          last_watched_lesson_id: lessonIdToComplete,
           progress_percentage: progressPercentage,
           completed_lessons: completedCount,
           total_lessons: allLessons.length,
@@ -477,6 +477,10 @@ export default function Player() {
     if (lessonIndex === 0) return true;
     if (isAdmin) return true;
 
+    // Aula já concluída sempre deve estar acessível
+    const ownProgress = progressData.find(p => p.lesson_id === checkLesson.id);
+    if (ownProgress?.completed) return true;
+
     const previousLesson = lessons[lessonIndex - 1];
     const previousProgress = progressData.find(p => p.lesson_id === previousLesson.id);
     return previousProgress?.completed || false;
@@ -745,7 +749,19 @@ export default function Player() {
               onClick={() => {
                 if (isCompleting) return;
                 setIsCompleting(true);
-                markAsCompleteMutation.mutate();
+                // Captura os dados da aula ATUAL antes de navegar,
+                // pois o navigate() muda o lessonId e a mutation poderia
+                // usar o lessonId da próxima aula por causa do closure.
+                const currentLessonId = lessonId;
+                const currentProgressData = progressData;
+                const currentDuration = duration;
+                const currentLesson = lesson;
+                markAsCompleteMutation.mutate({
+                  lessonIdToComplete: currentLessonId,
+                  snapshotProgressData: currentProgressData,
+                  snapshotDuration: currentDuration,
+                  snapshotLesson: currentLesson,
+                });
                 const currentIndex = lessons.findIndex(l => l.id === lessonId);
                 if (currentIndex < lessons.length - 1) {
                   const nextLesson = lessons[currentIndex + 1];
