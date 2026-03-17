@@ -399,12 +399,36 @@ export default function Player() {
       setDuration(video.duration);
     };
 
+    const handleEnded = () => {
+      const existingProgress = progressData.find(p => p.lesson_id === lessonId);
+      if (!existingProgress?.completed) {
+        const currentLessonId = lessonId;
+        const currentProgressData = progressData;
+        const currentDuration = video.duration || duration;
+        const currentLesson = lesson;
+        markAsCompleteMutation.mutate({
+          lessonIdToComplete: currentLessonId,
+          snapshotProgressData: currentProgressData,
+          snapshotDuration: currentDuration,
+          snapshotLesson: currentLesson,
+        });
+        const idx = lessons.findIndex(l => l.id === currentLessonId);
+        if (idx < lessons.length - 1) {
+          navigate(createPageUrl('Player') + `?lesson=${lessons[idx + 1].id}&course=${courseId}`);
+        } else {
+          navigate(createPageUrl('CourseDetail') + '?id=' + courseId);
+        }
+      }
+    };
+
     video.addEventListener('timeupdate', handleTimeUpdate);
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('ended', handleEnded);
 
     return () => {
       video.removeEventListener('timeupdate', handleTimeUpdate);
       video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener('ended', handleEnded);
     };
   }, [lessonId, showCompletePrompt, progressData, isYouTube, lesson]);
 
