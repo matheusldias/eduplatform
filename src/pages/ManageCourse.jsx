@@ -486,7 +486,7 @@ export default function ManageCourse() {
                           <GripVertical className="w-5 h-5 text-slate-500" />
                           <div>
                             <CardTitle className="text-white">
-                              Módulo {moduleIndex + 1}: {module.title}
+                              {module.title}
                             </CardTitle>
                             {module.description && (
                               <p className="text-sm text-slate-400 mt-1">{module.description}</p>
