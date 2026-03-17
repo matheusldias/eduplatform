@@ -291,12 +291,28 @@ export default function Player() {
             JSON.stringify({ event: 'listening' }), '*'
           );
         }
-        // Quando o vídeo termina (state 0 = ended), liberar conclusão
+        // Quando o vídeo termina (state 0 = ended), auto-completar e avançar
         if (data?.event === 'onStateChange' && data?.info === 0) {
           setCanComplete(true);
           const existingProgress = progressData.find(p => p.lesson_id === lessonId);
           if (!existingProgress?.completed) {
-            setShowCompletePrompt(true);
+            // Auto-completar e avançar
+            const currentLessonId = lessonId;
+            const currentProgressData = progressData;
+            const currentDuration = ytDurationRef.current || lesson?.duration_seconds || 0;
+            const currentLesson = lesson;
+            markAsCompleteMutation.mutate({
+              lessonIdToComplete: currentLessonId,
+              snapshotProgressData: currentProgressData,
+              snapshotDuration: currentDuration,
+              snapshotLesson: currentLesson,
+            });
+            const idx = lessons.findIndex(l => l.id === currentLessonId);
+            if (idx < lessons.length - 1) {
+              navigate(createPageUrl('Player') + `?lesson=${lessons[idx + 1].id}&course=${courseId}`);
+            } else {
+              navigate(createPageUrl('CourseDetail') + '?id=' + courseId);
+            }
           }
         }
       } catch {}
