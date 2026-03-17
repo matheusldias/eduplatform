@@ -393,9 +393,9 @@ export default function AdminStudents() {
                             size="sm"
                             variant="outline"
                             onClick={() => openStoreDialog(student)}
-                            className="border-slate-700 text-slate-300 hover:bg-slate-800"
+                            className="border-slate-700 text-black hover:bg-slate-800"
                           >
-                            <Store className="w-4 h-4 mr-2" />
+                            <Store className="w-4 h-4 mr-2 text-black" />
                             Loja
                           </Button>
                           <Button
