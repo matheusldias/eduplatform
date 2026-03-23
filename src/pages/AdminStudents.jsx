@@ -181,7 +181,10 @@ export default function AdminStudents() {
       alert('Preencha todos os campos');
       return;
     }
-    createStudentMutation.mutate(newStudent);
+    const studentData = isGestor
+      ? { ...newStudent, store_id: user?.store_id, store_name: stores.find(s => s.id === user?.store_id)?.name }
+      : newStudent;
+    createStudentMutation.mutate(studentData);
   };
 
   const handleEnrollStudent = () => {
@@ -213,7 +216,12 @@ export default function AdminStudents() {
     };
   };
 
-  const filteredStudents = students.filter(student =>
+  // Gestor vê apenas alunos da sua loja
+  const visibleStudents = isGestor && user?.store_id
+    ? students.filter(s => s.store_id === user.store_id)
+    : students;
+
+  const filteredStudents = visibleStudents.filter(student =>
     student.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     student.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -247,12 +255,16 @@ export default function AdminStudents() {
     );
   };
 
+  const visibleEnrollments = isGestor && user?.store_id
+    ? enrollments.filter(e => visibleStudents.some(s => s.id === e.user_id))
+    : enrollments;
+
   const totalStats = {
-    students: students.length,
-    enrolled: enrollments.length,
-    avgCompletion: enrollments.length > 0
+    students: visibleStudents.length,
+    enrolled: visibleEnrollments.length,
+    avgCompletion: visibleEnrollments.length > 0
       ? Math.round(
-          (enrollments.filter(e => e.status === 'completed').length / enrollments.length) * 100
+          (visibleEnrollments.filter(e => e.status === 'completed').length / visibleEnrollments.length) * 100
         )
       : 0,
   };
@@ -267,7 +279,7 @@ export default function AdminStudents() {
           </h1>
           <p className="text-slate-400">Cadastre alunos e gerencie matrículas</p>
         </div>
-        {isAdmin && (
+        {(isAdmin || isGestor) && (
           <Button
             onClick={() => setShowCreateDialog(true)}
             className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 shadow-lg shadow-violet-500/30"
@@ -470,6 +482,13 @@ export default function AdminStudents() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="store">Loja</Label>
+              {isGestor ? (
+                <Input
+                  value={stores.find(s => s.id === user?.store_id)?.name || 'Sua loja'}
+                  disabled
+                  className="bg-slate-800 border-slate-700 text-slate-400"
+                />
+              ) : (
               <Select
                 value={newStudent.store_id}
                 onValueChange={(value) => setNewStudent({ ...newStudent, store_id: value })}
@@ -486,6 +505,7 @@ export default function AdminStudents() {
                   ))}
                 </SelectContent>
               </Select>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">Perfil</Label>

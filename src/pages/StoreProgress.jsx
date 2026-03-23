@@ -27,10 +27,15 @@ export default function StoreProgress() {
     }
   }, [user, isAdmin, isGestor, navigate]);
 
-  const { data: stores = [] } = useQuery({
+  const { data: allStores = [] } = useQuery({
     queryKey: ['stores'],
     queryFn: () => base44.entities.Store.list(),
   });
+
+  // Gestor vê apenas a sua loja
+  const stores = isGestor && user?.store_id
+    ? allStores.filter(s => s.id === user.store_id)
+    : allStores;
 
   const { data: students = [] } = useQuery({
     queryKey: ['students'],
@@ -250,6 +255,7 @@ export default function StoreProgress() {
                 </div>
               ))}
 
+              {!isGestor && (
               <div className="p-6 rounded-lg bg-gradient-to-br from-violet-600/20 to-purple-600/20 border border-violet-500/30">
                 <h3 className="text-white font-semibold mb-4">Resumo Geral</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -279,6 +285,7 @@ export default function StoreProgress() {
                   </div>
                 </div>
               </div>
+              )}
             </div>
           )}
         </CardContent>
