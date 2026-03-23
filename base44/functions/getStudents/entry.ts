@@ -19,9 +19,9 @@ Deno.serve(async (req) => {
     const allUsers = await base44.asServiceRole.entities.User.list('-created_date');
     const students = allUsers.filter(u => u.role === 'user');
 
-    // Gestor vê apenas alunos da sua loja
+    // Gestor vê alunos da sua loja + alunos sem loja vinculada
     if (isGestor && user.store_id) {
-      const storeStudents = students.filter(s => s.store_id === user.store_id);
+      const storeStudents = students.filter(s => s.store_id === user.store_id || !s.store_id);
       return Response.json({ students: storeStudents });
     }
 
