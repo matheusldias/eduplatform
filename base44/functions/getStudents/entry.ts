@@ -21,7 +21,9 @@ Deno.serve(async (req) => {
 
     // Gestor vê alunos da sua loja + alunos sem loja vinculada
     if (isGestor && user.store_id) {
-      const storeStudents = students.filter(s => s.store_id === user.store_id || !s.store_id);
+      const storeStudents = students.filter(s =>
+        s.store_id === user.store_id || !s.store_id || s.store_id === '' || s.store_id === 'null'
+      );
       return Response.json({ students: storeStudents });
     }
 
