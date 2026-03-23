@@ -80,9 +80,10 @@ export default function AdminStudents() {
   const { data: students = [], isLoading } = useQuery({
     queryKey: ['students'],
     queryFn: async () => {
-      const allUsers = await base44.entities.User.list('-created_date');
-      return allUsers.filter(u => u.role === 'user');
+      const res = await base44.functions.invoke('getStudents', {});
+      return res.data.students || [];
     },
+    enabled: !!user,
   });
 
   const { data: courses = [] } = useQuery({
