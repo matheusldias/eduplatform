@@ -195,7 +195,7 @@ export default function StoreProgress() {
                           {studentRankings.map((ranking, index) => (
                             <div
                               key={ranking.student.id}
-                              className="flex items-center gap-4 p-4 rounded-lg bg-slate-900/50 hover:bg-slate-900/70 transition-all"
+                              className="flex flex-col md:flex-row md:items-center gap-3 p-4 rounded-lg bg-slate-900/50 hover:bg-slate-900/70 transition-all"
                             >
                               <div className="flex items-center gap-3 flex-1">
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
@@ -217,7 +217,7 @@ export default function StoreProgress() {
                                 </div>
                               </div>
 
-                              <div className="grid grid-cols-4 gap-4 text-center">
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 text-center">
                                 <div>
                                   <div className="flex items-center justify-center gap-1 mb-1">
                                     <Award className="w-3 h-3 text-green-400" />

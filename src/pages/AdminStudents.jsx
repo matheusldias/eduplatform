@@ -372,67 +372,67 @@ export default function AdminStudents() {
 
                 return (
                   <div
-                    key={student.id}
-                    className="flex items-center justify-between p-4 rounded-lg bg-slate-800/30 hover:bg-slate-800/50 transition-all duration-200 border border-slate-800/50"
-                  >
-                    <div className="flex items-center gap-4 flex-1">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center text-white text-lg font-semibold">
-                        {student.full_name?.[0]?.toUpperCase() || student.email?.[0]?.toUpperCase()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-white font-semibold mb-1">
-                          {student.full_name || 'Sem nome'}
-                        </h3>
-                        <p className="text-sm text-slate-400">{student.email}</p>
-                        <div className="flex items-center gap-3 mt-2 text-xs text-slate-500">
-                          {student.store_name && (
-                            <>
-                              <span className="text-violet-400">🏪 {student.store_name}</span>
-                              <span>•</span>
-                            </>
-                          )}
-                          <span>{stats.enrolled} curso(s)</span>
-                          <span>•</span>
-                          <span>{stats.completed} concluído(s)</span>
-                          <span>•</span>
-                          <span>{stats.avgProgress}% progresso médio</span>
-                        </div>
-                      </div>
+                      key={student.id}
+                      className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 p-4 rounded-lg bg-slate-800/30 hover:bg-slate-800/50 transition-all duration-200 border border-slate-800/50"
+                    >
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center text-white text-lg font-semibold flex-shrink-0">
+                      {student.full_name?.[0]?.toUpperCase() || student.email?.[0]?.toUpperCase()}
                     </div>
-                    <div className="flex items-center gap-2">
-                      {isAdmin && (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => openStoreDialog(student)}
-                            className="border-slate-700 text-black hover:bg-slate-800"
-                          >
-                            <Store className="w-4 h-4 mr-2 text-black" />
-                            Loja
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => openEnrollDialog(student)}
-                            className="border-slate-700 text-black hover:bg-slate-800"
-                          >
-                            <BookOpen className="w-4 h-4 mr-2 text-black" />
-                            Matrículas
-                          </Button>
-                        </>
-                      )}
-                      <Button
-                        size="sm"
-                        onClick={() => navigate(createPageUrl('StudentProgress') + '?id=' + student.id)}
-                        className="bg-violet-600 hover:bg-violet-700"
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
-                        Ver Progresso
-                      </Button>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-white font-semibold mb-1 break-words">
+                        {student.full_name || 'Sem nome'}
+                      </h3>
+                      <p className="text-sm text-slate-400 break-all">{student.email}</p>
+                      <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-slate-500">
+                        {student.store_name && (
+                          <>
+                            <span className="text-violet-400">🏪 {student.store_name}</span>
+                            <span>•</span>
+                          </>
+                        )}
+                        <span>{stats.enrolled} curso(s)</span>
+                        <span>•</span>
+                        <span>{stats.completed} concluído(s)</span>
+                        <span>•</span>
+                        <span>{stats.avgProgress}% progresso médio</span>
+                      </div>
                     </div>
                   </div>
-                );
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {isAdmin && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openStoreDialog(student)}
+                          className="border-slate-700 text-black hover:bg-slate-800"
+                        >
+                          <Store className="w-4 h-4 mr-2 text-black" />
+                          Loja
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openEnrollDialog(student)}
+                          className="border-slate-700 text-black hover:bg-slate-800"
+                        >
+                          <BookOpen className="w-4 h-4 mr-2 text-black" />
+                          Matrículas
+                        </Button>
+                      </>
+                    )}
+                    <Button
+                      size="sm"
+                      onClick={() => navigate(createPageUrl('StudentProgress') + '?id=' + student.id)}
+                      className="bg-violet-600 hover:bg-violet-700"
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      Ver Progresso
+                    </Button>
+                  </div>
+                  </div>
+                  );
               })}
             </div>
           )}
