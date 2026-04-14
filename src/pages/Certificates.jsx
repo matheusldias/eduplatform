@@ -189,7 +189,7 @@ export default function Certificates() {
   </div>
   <div class="body">
     <div class="logo">
-      <img src="https://media.base44.com/images/public/6914f15cd0b06aabd6ad50f8/bb30c4113_image.png" alt="Pizza Bis" crossorigin="anonymous">
+      <img src="https://media.base44.com/images/public/6914f15cd0b06aabd6ad50f8/0587160f0_01.png" alt="Pizza Bis" crossorigin="anonymous" style="height:23mm;display:block">
     </div>
     <div class="t-title">Certificado</div>
     <div class="t-sub">Este certificado atesta que</div>
