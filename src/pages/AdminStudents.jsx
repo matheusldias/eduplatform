@@ -400,27 +400,27 @@ export default function AdminStudents() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
+                    {(isAdmin || isGestor) && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openStoreDialog(student)}
+                        className="border-slate-700 text-black hover:bg-slate-800"
+                      >
+                        <Store className="w-4 h-4 mr-2 text-black" />
+                        Loja
+                      </Button>
+                    )}
                     {isAdmin && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => openStoreDialog(student)}
-                          className="border-slate-700 text-black hover:bg-slate-800"
-                        >
-                          <Store className="w-4 h-4 mr-2 text-black" />
-                          Loja
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => openEnrollDialog(student)}
-                          className="border-slate-700 text-black hover:bg-slate-800"
-                        >
-                          <BookOpen className="w-4 h-4 mr-2 text-black" />
-                          Matrículas
-                        </Button>
-                      </>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openEnrollDialog(student)}
+                        className="border-slate-700 text-black hover:bg-slate-800"
+                      >
+                        <BookOpen className="w-4 h-4 mr-2 text-black" />
+                        Matrículas
+                      </Button>
                     )}
                     <Button
                       size="sm"
@@ -564,7 +564,7 @@ export default function AdminStudents() {
                 </SelectTrigger>
                 <SelectContent className="bg-slate-800 border-slate-700">
                   <SelectItem value={null}>Nenhuma loja</SelectItem>
-                  {stores.filter(s => s.status === 'active').map((store) => (
+                  {stores.filter(s => s.status === 'active' && (isAdmin || s.id === user?.store_id)).map((store) => (
                     <SelectItem key={store.id} value={store.id}>
                       {store.name} ({store.code})
                     </SelectItem>
