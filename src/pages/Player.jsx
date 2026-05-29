@@ -195,16 +195,19 @@ export default function Player() {
         });
       }
 
-      // Atualizar progresso no enrollment
-      const allLessons = await base44.entities.Lesson.filter({ course_id: courseId });
+      // Atualizar progresso no enrollment (ignorar aulas em rascunho)
+      const allLessons = (await base44.entities.Lesson.filter({ course_id: courseId }))
+        .filter(l => l.status !== 'draft');
       const allProgress = await base44.entities.Progress.filter({
         user_id: user?.id,
         course_id: courseId,
       });
-      const completedCount = allProgress.filter(p => p.completed).length;
-      const progressPercentage = (completedCount / allLessons.length) * 100;
+      const publishedIds = new Set(allLessons.map(l => l.id));
+      const completedCount = allProgress.filter(p => p.completed && publishedIds.has(p.lesson_id)).length;
+      const totalCount = allLessons.length;
+      const progressPercentage = totalCount > 0 ? Math.min(100, (completedCount / totalCount) * 100) : 0;
 
-      const courseCompleted = completedCount >= allLessons.length;
+      const courseCompleted = totalCount > 0 && completedCount >= totalCount;
 
       if (enrollment) {
         await base44.entities.Enrollment.update(enrollment.id, {

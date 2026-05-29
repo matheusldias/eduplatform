@@ -28,9 +28,10 @@ export default function StudentProgress() {
     queryFn: () => base44.auth.me(),
   });
 
-  // Redirecionar não-admins
+  // Redirecionar quem não é admin nem gestor
   React.useEffect(() => {
-    if (currentUser && currentUser.role !== 'admin') {
+    const allowed = currentUser?.role === 'admin' || currentUser?.custom_role === 'admin' || currentUser?.custom_role === 'gestor';
+    if (currentUser && !allowed) {
       navigate(createPageUrl('MyCourses'));
     }
   }, [currentUser, navigate]);
