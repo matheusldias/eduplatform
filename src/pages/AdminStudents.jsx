@@ -161,6 +161,18 @@ export default function AdminStudents() {
     },
   });
 
+  const deleteStudentMutation = useMutation({
+    mutationFn: async (studentId) => {
+      const studentEnrollments = enrollments.filter(e => e.user_id === studentId);
+      await Promise.all(studentEnrollments.map(e => base44.entities.Enrollment.delete(e.id)));
+      return base44.entities.User.delete(studentId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['students'] });
+      queryClient.invalidateQueries({ queryKey: ['allEnrollments'] });
+    },
+  });
+
   const updateStudentStoreMutation = useMutation({
     mutationFn: async ({ studentId, storeId }) => {
       const store = stores.find(s => s.id === storeId);
@@ -430,6 +442,22 @@ export default function AdminStudents() {
                       <Eye className="w-4 h-4 mr-2" />
                       Ver Progresso
                     </Button>
+                    {isAdmin && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          if (confirm(`Excluir o aluno "${student.full_name || student.email}"? Esta ação é permanente e remove também todas as matrículas dele.`)) {
+                            deleteStudentMutation.mutate(student.id);
+                          }
+                        }}
+                        disabled={deleteStudentMutation.isPending}
+                        className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Excluir
+                      </Button>
+                    )}
                   </div>
                   </div>
                   );
@@ -605,38 +633,7 @@ export default function AdminStudents() {
               Aluno: {selectedStudent?.full_name}
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4 max-h-96 overflow-y-auto space-y-4">
-            {selectedStudent && getStudentEnrollments(selectedStudent.id).length > 0 && (
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-slate-300">Matrículas atuais</p>
-                {getStudentEnrollments(selectedStudent.id).map((enrollment) => (
-                  <div
-                    key={enrollment.id}
-                    className="flex items-center justify-between gap-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700/50"
-                  >
-                    <div className="min-w-0">
-                      <h4 className="text-white text-sm font-medium truncate">{enrollment.course_title}</h4>
-                      <p className="text-xs text-slate-400">{Math.round(enrollment.progress_percentage || 0)}% concluído</p>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        if (confirm('Excluir esta matrícula? O progresso registrado será mantido, mas o aluno perderá o acesso ao curso.')) {
-                          deleteEnrollmentMutation.mutate(enrollment.id);
-                          setSelectedCourses((prev) => prev.filter((id) => id !== enrollment.course_id));
-                        }
-                      }}
-                      disabled={deleteEnrollmentMutation.isPending}
-                      className="border-red-500/30 text-red-400 hover:bg-red-500/10 flex-shrink-0"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Excluir
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
+          <div className="py-4 max-h-96 overflow-y-auto">
             {courses.length === 0 ? (
               <p className="text-slate-400 text-center py-8">Nenhum curso publicado disponível</p>
             ) : (
