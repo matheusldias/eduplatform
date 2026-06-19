@@ -1,0 +1,90 @@
+{
+  "name": "Lesson",
+  "type": "object",
+  "properties": {
+    "module_id": {
+      "type": "string",
+      "description": "ID do m\u00f3dulo"
+    },
+    "course_id": {
+      "type": "string",
+      "description": "ID do curso"
+    },
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo da aula"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o da aula"
+    },
+    "order": {
+      "type": "number",
+      "description": "Ordem da aula no m\u00f3dulo"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "published",
+        "draft"
+      ],
+      "default": "published",
+      "description": "Status da aula (publicada ou rascunho)"
+    },
+    "content_type": {
+      "type": "string",
+      "enum": [
+        "video",
+        "pdf",
+        "image"
+      ],
+      "default": "video",
+      "description": "Tipo de conte\u00fado da aula"
+    },
+    "content_url": {
+      "type": "string",
+      "description": "URL do conte\u00fado (v\u00eddeo, PDF ou imagem)"
+    },
+    "video_url": {
+      "type": "string",
+      "description": "URL do v\u00eddeo (mantido para compatibilidade)"
+    },
+    "duration_seconds": {
+      "type": "number",
+      "description": "Dura\u00e7\u00e3o em segundos"
+    },
+    "thumbnail_url": {
+      "type": "string",
+      "description": "URL da thumbnail"
+    },
+    "requires_previous": {
+      "type": "boolean",
+      "default": true,
+      "description": "Requer conclus\u00e3o da aula anterior"
+    },
+    "resources": {
+      "type": "array",
+      "description": "Recursos complementares",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "module_id",
+    "course_id",
+    "title",
+    "order"
+  ]
+}

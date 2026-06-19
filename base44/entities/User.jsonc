@@ -1,0 +1,28 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "store_id": {
+      "type": "string",
+      "description": "ID da loja vinculada ao usu\u00e1rio"
+    },
+    "store_name": {
+      "type": "string",
+      "description": "Nome da loja (desnormalizado)"
+    },
+    "custom_role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "gestor",
+        "aluno"
+      ],
+      "description": "Papel customizado do usu\u00e1rio"
+    }
+  },
+  "required": [
+    "store_id",
+    "store_name",
+    "custom_role"
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "name": "Progress",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID do usu\u00e1rio"
+    },
+    "lesson_id": {
+      "type": "string",
+      "description": "ID da aula"
+    },
+    "course_id": {
+      "type": "string",
+      "description": "ID do curso"
+    },
+    "module_id": {
+      "type": "string",
+      "description": "ID do m\u00f3dulo"
+    },
+    "seconds_watched": {
+      "type": "number",
+      "default": 0,
+      "description": "Segundos assistidos"
+    },
+    "last_position": {
+      "type": "number",
+      "default": 0,
+      "description": "\u00daltima posi\u00e7\u00e3o do v\u00eddeo"
+    },
+    "completed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Aula conclu\u00edda"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data de conclus\u00e3o"
+    },
+    "percentage": {
+      "type": "number",
+      "default": 0,
+      "description": "Porcentagem assistida"
+    }
+  },
+  "required": [
+    "user_id",
+    "lesson_id",
+    "course_id"
+  ]
+}

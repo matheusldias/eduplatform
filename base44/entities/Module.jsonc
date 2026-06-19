@@ -1,0 +1,37 @@
+{
+  "name": "Module",
+  "type": "object",
+  "properties": {
+    "course_id": {
+      "type": "string",
+      "description": "ID do curso"
+    },
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo do m\u00f3dulo"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do m\u00f3dulo"
+    },
+    "order": {
+      "type": "number",
+      "description": "Ordem do m\u00f3dulo no curso"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "default": 0,
+      "description": "Dura\u00e7\u00e3o total em minutos"
+    },
+    "lessons_count": {
+      "type": "number",
+      "default": 0,
+      "description": "N\u00famero de aulas"
+    }
+  },
+  "required": [
+    "course_id",
+    "title",
+    "order"
+  ]
+}

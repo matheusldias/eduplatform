@@ -1,0 +1,48 @@
+{
+  "name": "Certificate",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID do usu\u00e1rio"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Nome do usu\u00e1rio"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email do usu\u00e1rio"
+    },
+    "course_id": {
+      "type": "string",
+      "description": "ID do curso"
+    },
+    "course_title": {
+      "type": "string",
+      "description": "T\u00edtulo do curso"
+    },
+    "instructor_name": {
+      "type": "string",
+      "description": "Nome do instrutor"
+    },
+    "code": {
+      "type": "string",
+      "description": "C\u00f3digo \u00fanico de verifica\u00e7\u00e3o"
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data de emiss\u00e3o"
+    },
+    "total_hours": {
+      "type": "number",
+      "description": "Carga hor\u00e1ria total"
+    }
+  },
+  "required": [
+    "user_id",
+    "course_id",
+    "code"
+  ]
+}

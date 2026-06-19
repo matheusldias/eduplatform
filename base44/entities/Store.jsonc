@@ -1,0 +1,27 @@
+{
+  "name": "Store",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nome da loja"
+    },
+    "code": {
+      "type": "string",
+      "description": "C\u00f3digo \u00fanico da loja"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active",
+      "description": "Status da loja"
+    }
+  },
+  "required": [
+    "name",
+    "code"
+  ]
+}

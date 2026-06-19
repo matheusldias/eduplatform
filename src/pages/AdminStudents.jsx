@@ -605,7 +605,38 @@ export default function AdminStudents() {
               Aluno: {selectedStudent?.full_name}
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4 max-h-96 overflow-y-auto">
+          <div className="py-4 max-h-96 overflow-y-auto space-y-4">
+            {selectedStudent && getStudentEnrollments(selectedStudent.id).length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-slate-300">Matrículas atuais</p>
+                {getStudentEnrollments(selectedStudent.id).map((enrollment) => (
+                  <div
+                    key={enrollment.id}
+                    className="flex items-center justify-between gap-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700/50"
+                  >
+                    <div className="min-w-0">
+                      <h4 className="text-white text-sm font-medium truncate">{enrollment.course_title}</h4>
+                      <p className="text-xs text-slate-400">{Math.round(enrollment.progress_percentage || 0)}% concluído</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        if (confirm('Excluir esta matrícula? O progresso registrado será mantido, mas o aluno perderá o acesso ao curso.')) {
+                          deleteEnrollmentMutation.mutate(enrollment.id);
+                          setSelectedCourses((prev) => prev.filter((id) => id !== enrollment.course_id));
+                        }
+                      }}
+                      disabled={deleteEnrollmentMutation.isPending}
+                      className="border-red-500/30 text-red-400 hover:bg-red-500/10 flex-shrink-0"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Excluir
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
             {courses.length === 0 ? (
               <p className="text-slate-400 text-center py-8">Nenhum curso publicado disponível</p>
             ) : (
